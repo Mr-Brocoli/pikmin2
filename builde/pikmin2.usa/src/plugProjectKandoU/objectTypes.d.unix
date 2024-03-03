@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/plugProjectKandoU/objectTypes.o: src/plugProjectKandoU/objectTypes.cpp \
+	include/ObjectTypes.h \
+	include/types.h \
+	include/BuildSettings.h 

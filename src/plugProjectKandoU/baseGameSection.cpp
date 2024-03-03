@@ -1424,6 +1424,8 @@ void BaseGameSection::test_draw_treasure_detector() { }
  */
 void BaseGameSection::draw2D(Graphics& gfx)
 {
+	J2DPictureEx* amogus;
+
 	j3dSys.reinitGX();
 	gfx.mOrthoGraph.setPort();
 	draw_Ogawa2D(gfx);

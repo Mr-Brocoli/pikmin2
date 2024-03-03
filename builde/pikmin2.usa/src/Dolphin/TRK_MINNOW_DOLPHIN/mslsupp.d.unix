@@ -1,0 +1,11 @@
+build/pikmin2.usa/src/Dolphin/TRK_MINNOW_DOLPHIN/mslsupp.o: src/Dolphin/TRK_MINNOW_DOLPHIN/mslsupp.c \
+	include/PowerPC_EABI_Support/MetroTRK/trk.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/PowerPC_EABI_Support/MetroTRK/trktypes.h \
+	include/Dolphin/OS/OSInterrupt.h \
+	include/Dolphin/OS/OSContext.h \
+	include/Dolphin/OS/OSException.h \
+	include/Dolphin/OS/OSUtil.h \
+	include/PowerPC_EABI_Support/MetroTRK/trkenum.h \
+	include/PowerPC_EABI_Support/MetroTRK/ppc_reg.h 

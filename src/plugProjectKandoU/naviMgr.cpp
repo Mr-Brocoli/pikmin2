@@ -7,6 +7,9 @@
 #include "JSystem/J3D/J3DModelLoader.h"
 #include "Game/PikiMgr.h"
 
+#include "JSystem/J2D/J2DTypes.h"
+#include "Brocoli/NewCaptains.h"
+
 namespace Game {
 
 NaviMgr* naviMgr;
@@ -164,6 +167,7 @@ Navi* NaviMgr::getActiveNavi()
 	return nullptr;
 }
 
+
 /**
  * @note Address: 0x8015ACBC
  * @note Size: 0xBC
@@ -172,12 +176,16 @@ void NaviMgr::loadResources()
 {
 	void* parmsFile = JKRDvdRipper::loadToMainRAM("user/Abe/piki/naviParms.txt", nullptr, Switch_0, 0, nullptr,
 	                                              JKRDvdRipper::ALLOC_DIR_BOTTOM, 0, nullptr, nullptr);
+
 	if (parmsFile) {
 		RamStream stream(parmsFile, -1);
 		stream.resetPosition(true, 1);
 		mNaviParms->read(stream);
 		delete[] parmsFile;
 	}
+
+	mNewCaptains = new NewCaptains();
+
 	load();
 }
 
@@ -195,12 +203,12 @@ void NaviMgr::load()
 	JKRArchive* arc = JKRMountArchive("/user/Kando/piki/pikis.szs", JKRArchive::EMM_Mem, sys->mSysHeap, JKRArchive::EMD_Head);
 	sys->heapStatusEnd("NaviMgr::Archive");
 
-	J3DModelData* model = J3DModelLoaderDataBase::load(arc->getResource("orima_model/orima1.bmd"), 0x20000030);
+	J3DModelData* model = J3DModelLoaderDataBase::load(arc->getResource("piki_model/piki_ninjin.bmd"), 0x20000030);
 	for (u16 j = 0; j < model->getShapeNum(); j++) {
 		model->mShapeTable.mItems[j]->setTexMtxLoadType(0x2000);
 	}
 
-	mOlimarModel = model;
+	//mOlimarModel = model;
 
 	if (!animMgr) {
 		animMgr = SysShape::AnimMgr::load(texts, "animMgr.txt", model, arc, "motion");
@@ -232,20 +240,44 @@ SysShape::Model* NaviMgr::createModel(int naviID) { return new SysShape::Model((
  * @note Address: 0x8015B090
  * @note Size: 0xD4
  */
+
 void NaviMgr::loadResources_float()
 {
-	JKRArchive* arc = JKRMountArchive("/user/Kando/piki/pikis.szs", JKRArchive::EMM_Mem, sys->mSysHeap, JKRArchive::EMD_Head);
+	//JKRArchive* arc = JKRMountArchive("/user/Kando/piki/pikis.szs", JKRArchive::EMM_Mem, sys->mSysHeap, JKRArchive::EMD_Head);
+	//void* file = playData->isStoryFlag(STORY_DebtPaid) ? arc->getResource("piki_model/piki_ninjin.bmd") : arc->getResource("piki_model/piki_ninjin.bmd");
+	for (int i = 0; i != 2; i++) {
 
-	void* file
-	    = playData->isStoryFlag(STORY_DebtPaid) ? arc->getResource("orima_model/syatyou.bmd") : arc->getResource("orima_model/orima3.bmd");
+		char susbruh[100];
+		char* toSprint = "/brocoli/captains/%s.bmd";
+		bool imitater  = false;
+		if (mNewCaptains->slotIsPower(mNewCaptains->chosenCaptains[i], IMITATER_POWER)) {
+			imitater = true;
+			sprintf(susbruh, "/brocoli/fake_captains/%s.bmd", mNewCaptains->newCaptains[mNewCaptains->chosenCaptains[i^1]].name);
+		} else {
+			sprintf(susbruh, "/brocoli/captains/%s.bmd", mNewCaptains->newCaptains[mNewCaptains->chosenCaptains[i]].name);
+		}
 
-	J3DModelData* model = J3DModelLoaderDataBase::load(file, 0x20000030);
-	for (u16 j = 0; j < model->getShapeNum(); j++) {
-		J3DShape* shape = model->mShapeTable.mItems[j];
-		shape->setTexMtxLoadType(0x2000);
+		void* file = JKRDvdRipper::loadToMainRAM(susbruh, nullptr, Switch_0, 0, nullptr, JKRDvdRipper::ALLOC_DIR_BOTTOM, 0, nullptr, nullptr);
+		if (!file) {
+			file = JKRDvdRipper::loadToMainRAM("/brocoli/failsafe.bmd", nullptr, Switch_0, 0, nullptr,
+			                                   JKRDvdRipper::ALLOC_DIR_BOTTOM, 0, nullptr, nullptr);
+			// P2ASSERT(file, "No captain model or failsafe!");
+		}
+
+		J3DModelData* model = J3DModelLoaderDataBase::load(file, 0x20000030);
+		for (u16 j = 0; j < model->getShapeNum(); j++) {
+			J3DShape* shape = model->mShapeTable.mItems[j];
+			shape->setTexMtxLoadType(0x2000);
+			if (imitater) {
+				char grayScale = 0x57;
+				shape->getMaterial()->mTevBlock->setTevSwapModeTable(0, (J3DTevSwapModeTable*)&grayScale);
+			}
+		}
+
+		(&mOlimarModel)[i] = model;
 	}
 
-	mLouieModel = model;
+	//delete[] file;
 }
 
 /**

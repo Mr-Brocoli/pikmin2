@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/JSystem/JSupport/JSUList.o: src/JSystem/JSupport/JSUList.cpp \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JSupport/JSUList.h 

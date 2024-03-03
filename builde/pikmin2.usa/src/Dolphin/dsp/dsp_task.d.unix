@@ -1,0 +1,8 @@
+build/pikmin2.usa/src/Dolphin/dsp/dsp_task.o: src/Dolphin/dsp/dsp_task.c \
+	include/Dolphin/dsp.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/Dolphin/OS/OSUtil.h \
+	include/Dolphin/OS/OSContext.h \
+	include/Dolphin/OS/OSInterrupt.h \
+	include/Dolphin/OS/OSException.h 

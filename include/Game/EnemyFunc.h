@@ -55,7 +55,7 @@ void flickNearbyNavi(Creature* flicker, f32 searchRadius, f32 knockback, f32 dam
 
 int eatPikmin(EnemyBase* eater, Condition<Piki>* condition);
 void swallowPikmin(Creature* eater, f32 poisonDamage, Condition<Piki>* condition);
-int attackNavi(Creature* attacker, f32 searchRadius, f32 searchAngle, f32 damage, CollPart* part, Condition<Navi>* condition);
+int attackNavi(Creature* creature, f32 searchRadius, f32 searchAngle, f32 damage, CollPart* part, Condition<Navi>* condition);
 
 bool isStartFlick(EnemyBase* flicker, bool doResetFlickTimer);
 bool isTherePikmin(Creature* creature, f32 searchRadius, Condition<Piki>* condition);

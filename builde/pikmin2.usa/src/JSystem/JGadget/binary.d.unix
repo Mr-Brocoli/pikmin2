@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/JSystem/JGadget/binary.o: src/JSystem/JGadget/binary.cpp \
+	include/JSystem/JGadget/binary.h \
+	include/types.h \
+	include/BuildSettings.h 

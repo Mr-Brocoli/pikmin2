@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/plugProjectKandoU/sweepPrune.o: src/plugProjectKandoU/sweepPrune.cpp \
+	include/types.h \
+	include/BuildSettings.h \
+	include/SweepPrune.h 

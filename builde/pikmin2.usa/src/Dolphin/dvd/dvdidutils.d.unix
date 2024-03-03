@@ -1,0 +1,7 @@
+build/pikmin2.usa/src/Dolphin/dvd/dvdidutils.o: src/Dolphin/dvd/dvdidutils.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/string.h \
+	include/stl/mem.h \
+	include/PowerPC_EABI_Support/Runtime/__mem.h \
+	include/stl/extras.h 

@@ -1,0 +1,21 @@
+build/pikmin2.usa/src/Dolphin/TRK_MINNOW_DOLPHIN/msghndlr.o: src/Dolphin/TRK_MINNOW_DOLPHIN/msghndlr.c \
+	include/PowerPC_EABI_Support/MetroTRK/trk.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/PowerPC_EABI_Support/MetroTRK/trktypes.h \
+	include/Dolphin/OS/OSInterrupt.h \
+	include/Dolphin/OS/OSContext.h \
+	include/Dolphin/OS/OSException.h \
+	include/Dolphin/OS/OSUtil.h \
+	include/PowerPC_EABI_Support/MetroTRK/trkenum.h \
+	include/PowerPC_EABI_Support/MetroTRK/ppc_reg.h \
+	include/Dolphin/print.h \
+	include/stl/stdio.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/FILE_POS.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/ansi_files.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/direct_io.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/file_io.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/printf.h \
+	include/stl/stdarg.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/file_struc.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/scanf.h 

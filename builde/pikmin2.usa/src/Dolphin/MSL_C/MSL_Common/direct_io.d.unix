@@ -1,0 +1,17 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/MSL_Common/direct_io.o: src/Dolphin/MSL_C/MSL_Common/direct_io.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/wchar.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/wchar_io.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/ansi_files.h \
+	include/stl/stdio.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/FILE_POS.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/direct_io.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/file_io.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/printf.h \
+	include/stl/stdarg.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/file_struc.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/scanf.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/stdio_api.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/misc_io.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/critical_regions.h 

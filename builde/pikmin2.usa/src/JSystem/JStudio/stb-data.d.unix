@@ -1,0 +1,3 @@
+build/pikmin2.usa/src/JSystem/JStudio/stb-data.o: src/JSystem/JStudio/stb-data.cpp \
+	include/types.h \
+	include/BuildSettings.h 

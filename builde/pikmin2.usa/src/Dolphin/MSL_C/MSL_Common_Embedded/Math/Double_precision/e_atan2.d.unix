@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/MSL_Common_Embedded/Math/Double_precision/e_atan2.o: src/Dolphin/MSL_C/MSL_Common_Embedded/Math/Double_precision/e_atan2.c \
+	include/stl/fdlibm.h \
+	include/types.h \
+	include/BuildSettings.h 

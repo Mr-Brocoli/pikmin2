@@ -1,0 +1,17 @@
+build/pikmin2.usa/src/plugProjectEbisawaU/ebiGeometry.o: src/plugProjectEbisawaU/ebiGeometry.cpp \
+	include/Vector2.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/sqrt.h \
+	include/JSystem/JGeometry.h \
+	include/Dolphin/vec.h \
+	include/stl/float.h \
+	include/stl/math.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/math_api.h \
+	include/stl/fdlibm.h \
+	include/ebi/Geometry.h \
+	include/sysMath.h \
+	include/JSystem/JMath.h \
+	include/JSystem/JMath/Inline.h \
+	include/Dolphin/mtx.h \
+	include/stl/utility.h 

@@ -260,7 +260,7 @@ struct Piki : public FakePiki {
 	Vector3f mLeafStemPosition;       // _26C
 	SysShape::Joint* mHappaJoint1;    // _278
 	efx::Context* mEffectsContext;    // _27C
-	u8 _280[4];                       // _280
+	Navi* lastKnownNavi;              // _280
 	s16 mIsDoped;                     // _284
 	f32 mDopeTime;                    // _288
 	PikiFSM* mFsm;                    // _28C
@@ -278,6 +278,13 @@ struct Piki : public FakePiki {
 	SysShape::Model* mLeafModel;      // _2BC
 	int mMgrIndex;                    // _2C0
 	Navi* mNavi;                      // _2C4
+
+	Navi* operator=(Navi* newNavi)
+	{
+		mNavi         = newNavi;
+		if (mNavi)
+			lastKnownNavi = mNavi;
+	}
 };
 } // namespace Game
 

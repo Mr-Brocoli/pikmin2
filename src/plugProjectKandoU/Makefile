@@ -1,11 +1,13 @@
 KANDO_FILES:=\
+	$(BUILD_DIR)/src/Brocoli/naviPowers.o\
+	$(BUILD_DIR)/src/Brocoli/newCaptains.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/pikiAnimator.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/collinfo.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/gameDynamics.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/creature.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/fakePiki.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/navi.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/piki.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/fakePiki.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/navi.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/piki.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/baseGameSection.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/singleGameSection.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/cellPyramid.o\
@@ -14,12 +16,12 @@ KANDO_FILES:=\
 	$(BUILD_DIR)/asm/plugProjectKandoU/mapMgr.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/baseHIOSection.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/naviWhistle.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/pelletMgr.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/pelletMgr.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/routeMgr.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/onyonMgr.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/objectTypes.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/naviState.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/pikiState.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/naviState.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/pikiState.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/interactPiki.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/gameCPlate.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/updateMgr.o\
@@ -31,7 +33,7 @@ KANDO_FILES:=\
 	$(BUILD_DIR)/src/plugProjectKandoU/aiFree.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/aiAttack.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/aiTransport.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/aiEnter.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/aiEnter.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/pathfinder.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/pelletState.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/dynCreature.o\
@@ -51,7 +53,7 @@ KANDO_FILES:=\
 	$(BUILD_DIR)/src/plugProjectKandoU/gamePlatMgr.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/itemGate.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/itemMgr.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/aiBreakGate.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/aiBreakGate.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/gameStat.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/itemHole.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/itemHoney.o\
@@ -64,7 +66,7 @@ KANDO_FILES:=\
 	$(BUILD_DIR)/src/plugProjectKandoU/aiBreakRock.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/aiCrop.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/registItem.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/gamePlayData.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/gamePlayData.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/itemCave.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/itemBigFountain.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/itemBridge.o\

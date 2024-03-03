@@ -7,6 +7,8 @@
 #include "Dolphin/rand.h"
 #include "nans.h"
 
+#include "Game/EnemyBase.h"
+
 namespace Game {
 namespace EnemyFunc {
 
@@ -16,6 +18,7 @@ namespace EnemyFunc {
  */
 Navi* getNearestNavi(Creature* creature, f32 searchAngle, f32 searchRadius, f32* naviDist, Condition<Navi>* condition)
 {
+
 	Navi* navi = nullptr;
 	f32 minDist;
 	searchAngle = TORADIANS(searchAngle);
@@ -40,14 +43,28 @@ Navi* getNearestNavi(Creature* creature, f32 searchAngle, f32 searchRadius, f32*
 	CI_LOOP(iter)
 	{
 		Navi* currNavi = *iter;
-		if (currNavi->isAlive()) {
+		//BROCOLI AMONGUS
+		if (currNavi->isAlive() && !currNavi->naviPowers->isPower(ENEMY_INVISIBLE)) {
 			f32 angleDist = creature->getAngDist(currNavi);
 			if (FABS(angleDist) <= searchAngle) {
 				// something fucky here
 				Vector3f sep = Vector3f(currNavi->getPosition().x, 0.0f, currNavi->getPosition().z)
 				             - Vector3f(creature->getPosition().x, 0.0f, creature->getPosition().z);
 				f32 newDist = SQUARE(sep.x) + SQUARE(sep.z);
+
+
+				EnemyBase* bruh = (EnemyBase*)creature;
+				if (currNavi->naviPowers->isPower(KING_OF_BUGS) && bruh->mHealth == bruh->mMaxHealth && !IS_ENEMY_BOSS(bruh->getEnemyTypeID()))
+					continue;
+
+
+
 				if (newDist < minDist) {
+					// Lazy code but who really cares
+					if (!currNavi->naviPowers->isPower(ENEMY_PRIORITY)) { 
+						if (navi && navi->naviPowers->isPower(ENEMY_PRIORITY))
+							continue;
+					}
 					navi    = currNavi;
 					minDist = newDist;
 				}
@@ -397,6 +414,12 @@ Piki* getNearestPikmin(Creature* creature, f32 searchAngle, f32 searchRadius, f3
 				// something fucky here
 				Vector3f sep = Vector3f(currPiki->getPosition().x, 0.0f, currPiki->getPosition().z)
 				             - Vector3f(creature->getPosition().x, 0.0f, creature->getPosition().z);
+				
+				EnemyBase* bruh = (EnemyBase*)creature;
+				if (currPiki->lastKnownNavi && currPiki->lastKnownNavi->naviPowers->isPower(KING_OF_BUGS)
+				    && bruh->mHealth == bruh->mMaxHealth && !IS_ENEMY_BOSS(bruh->getEnemyTypeID()))
+					continue;
+				
 				f32 newDist = SQUARE(sep.x) + SQUARE(sep.z);
 				if (newDist < minDist) {
 					piki    = currPiki;
@@ -753,6 +776,12 @@ Creature* getNearestPikminOrNavi(Creature* creature, f32 searchAngle, f32 search
 
 	Creature* navi = getNearestNavi(creature, searchAngle, searchRadius, targetDist, naviCondition);
 	Creature* piki = getNearestPikmin(creature, searchAngle, searchRadius, targetDist, pikiCondition);
+
+	if (navi) {
+		Navi* bruh = (Navi*)navi;
+		if (bruh->naviPowers->isPower(ENEMY_PRIORITY))
+			return navi; // amogus
+	}
 
 	if (piki) {
 		return piki;
@@ -1181,6 +1210,7 @@ int attackNavi(Creature* creature, f32 searchRadius, f32 searchAngle, f32 damage
 	searchAngle     = TORADIANS(searchAngle);
 	int attackCount = 0;
 
+
 	Iterator<Navi> iter(naviMgr, nullptr, condition);
 	CI_LOOP(iter)
 	{
@@ -1193,7 +1223,16 @@ int attackNavi(Creature* creature, f32 searchRadius, f32 searchAngle, f32 damage
 			f32 dist             = creaturePos.distance(naviPos);
 			if (dist < searchRadius) {
 				InteractAttack attack(creature, damage, part);
-				navi->stimulate(attack);
+
+				//BROCOLI AMONGUSs
+				if (navi->stimulate(attack) && navi->naviPowers->isPower(ENEMY_POISON)) {
+					float pDamage = 200.0f;
+					float secondPDamage = ((EnemyBase*)(creature))->mMaxHealth / 3.2f;
+					if (secondPDamage > pDamage)
+						pDamage = secondPDamage;
+					static_cast<EnemyBase*>(creature)->eatWhitePikminCallBack(nullptr, pDamage);
+				}
+
 				attackCount++;
 			}
 		}

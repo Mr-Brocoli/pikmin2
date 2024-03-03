@@ -1,0 +1,9 @@
+build/pikmin2.usa/src/Dolphin/mtx/mtx.o: src/Dolphin/mtx/mtx.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/fdlibm.h \
+	include/Dolphin/mtx.h \
+	include/Dolphin/vec.h \
+	include/stl/math.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/math_api.h \
+	include/stl/fdlibm.h 

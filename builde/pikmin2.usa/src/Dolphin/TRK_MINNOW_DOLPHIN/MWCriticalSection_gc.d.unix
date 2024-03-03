@@ -1,0 +1,3 @@
+build/pikmin2.usa/src/Dolphin/TRK_MINNOW_DOLPHIN/MWCriticalSection_gc.o: src/Dolphin/TRK_MINNOW_DOLPHIN/MWCriticalSection_gc.cpp \
+	include/types.h \
+	include/BuildSettings.h 

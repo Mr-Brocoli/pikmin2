@@ -1,0 +1,3 @@
+build/pikmin2.usa/src/Dolphin/Runtime/CPlusLibPPC.o: src/Dolphin/Runtime/CPlusLibPPC.cp \
+	include/types.h \
+	include/BuildSettings.h 

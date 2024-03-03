@@ -1,0 +1,5 @@
+build/pikmin2.usa/src/JSystem/JStudio/fvb-data-parse.o: src/JSystem/JStudio/fvb-data-parse.cpp \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JGadget/binary.h \
+	include/JSystem/JStudio/fvb/fvb-data.h 

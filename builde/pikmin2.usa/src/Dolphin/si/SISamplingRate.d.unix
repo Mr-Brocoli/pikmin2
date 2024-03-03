@@ -1,0 +1,26 @@
+build/pikmin2.usa/src/Dolphin/si/SISamplingRate.o: src/Dolphin/si/SISamplingRate.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/Dolphin/OS.h \
+	include/Dolphin/PPCArch.h \
+	include/Dolphin/dvd.h \
+	include/Dolphin/OS/OSUtil.h \
+	include/Dolphin/OS/OSAlarm.h \
+	include/Dolphin/OS/OSContext.h \
+	include/Dolphin/OS/OSAlloc.h \
+	include/Dolphin/OS/OSBootInfo.h \
+	include/Dolphin/OS/OSCache.h \
+	include/Dolphin/OS/OSThread.h \
+	include/Dolphin/OS/OSError.h \
+	include/Dolphin/OS/OSException.h \
+	include/Dolphin/OS/OSExpansion.h \
+	include/Dolphin/OS/OSFastCast.h \
+	include/Dolphin/OS/OSFont.h \
+	include/Dolphin/OS/OSInterrupt.h \
+	include/Dolphin/OS/OSMemory.h \
+	include/Dolphin/OS/OSMessage.h \
+	include/Dolphin/OS/OSModule.h \
+	include/Dolphin/OS/OSMutex.h \
+	include/Dolphin/OS/OSReset.h \
+	include/Dolphin/OS/OSSerial.h \
+	include/Dolphin/vi.h 

@@ -1,0 +1,3 @@
+build/pikmin2.usa/src/Dolphin/Runtime/ptmf.o: src/Dolphin/Runtime/ptmf.c \
+	include/types.h \
+	include/BuildSettings.h 

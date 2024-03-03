@@ -1,0 +1,7 @@
+build/pikmin2.usa/src/Dolphin/Runtime/NMWException.o: src/Dolphin/Runtime/NMWException.cp \
+	include/PowerPC_EABI_Support/Runtime/NMWException.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/PowerPC_EABI_Support/Runtime/exception.h \
+	include/PowerPC_EABI_Support/Runtime/__ppc_eabi_linker.h \
+	include/PowerPC_EABI_Support/Runtime/MWCPlusLib.h 

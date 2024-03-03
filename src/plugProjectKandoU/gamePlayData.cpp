@@ -10,6 +10,8 @@
 #include "Game/gameStat.h"
 #include "Game/enemyInfo.h"
 
+#include "Game/Navi.h"
+
 /**
  * @note Address: N/A
  * @note Size: 0xE4
@@ -1584,6 +1586,12 @@ void PlayData::incGroundOtakara(int index)
 int PlayData::getDopeCount(int sprayIndex)
 {
 	P2ASSERTBOUNDSLINE(1572, 0, sprayIndex, 2);
+	if (naviMgr->getAt(NAVIID_Captain1)->naviPowers->isPower(SPRAY_EXCHANGE)
+	    || naviMgr->getAt(NAVIID_Captain2)->naviPowers->isPower(SPRAY_EXCHANGE)) {
+		if (sprayIndex == SPRAY_TYPE_BITTER)
+			return 0;
+		return mSprayCount[0] + mSprayCount[1];
+	}
 	return mSprayCount[sprayIndex];
 }
 

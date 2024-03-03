@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/MSL_Common/wchar_io.o: src/Dolphin/MSL_C/MSL_Common/wchar_io.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/ansi_files.h 

@@ -1,0 +1,6 @@
+build/pikmin2.usa/src/JSystem/JGadget/linklist.o: src/JSystem/JGadget/linklist.cpp \
+	include/JSystem/JGadget/linklist.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/algorithm.h \
+	include/stl/iterator.h 

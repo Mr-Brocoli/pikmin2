@@ -51,7 +51,9 @@ Piki::Piki()
 	mCollTree->createSingleSphere(nullptr, 0, mBoundingSphere, nullptr);
 	mObjectTypeID = OBJTYPE_Piki;
 	mNavi         = nullptr;
+	lastKnownNavi = nullptr;
 	mCurrentState = nullptr;
+	mDeathTimer   = -20.0f;
 
 	sys->heapStatusStart("TPkEffect", nullptr);
 	mEffectsObj     = new efx::TPkEffect;
@@ -119,6 +121,7 @@ void Piki::onInit(CreatureInitArg* initArg)
 {
 	mTekiKillID = -1;
 	mNavi       = nullptr;
+	lastKnownNavi = nullptr;
 	initColor();
 	initFakePiki();
 	setMoveVelocity(true);
@@ -251,28 +254,56 @@ void Piki::getLODSphere(Sys::Sphere& sphere)
  */
 void Piki::update()
 {
-	sys->mTimers->_start("pu-1", true);
+
+	//BROCOLI AMONGUS (stupid ass code idc)
+	if (mNavi)
+		lastKnownNavi = mNavi;
+
+	if (mDeathTimer >= -10.0f) {
+		mDeathTimer -= sys->mDeltaTime;
+		//who cares what killed the boi
+		if (mDeathTimer <= 0.0f) {
+			deathMgr->inc(2);
+			mFsm->transit(this, PIKISTATE_Dying, nullptr);
+			mDeathTimer = -20.0f;
+		}
+	}
+
+	//sys->mTimers->_start("pu-1", true);
 	mSoundObj->exec();
 	updateGasInvincible();
 	updateLook();
 	updateLookCreature();
-	sys->mTimers->_start("pu-4", true);
+	//sys->mTimers->_start("pu-4", true);
 
 	if (!isMovieActor() || isMovieExtra()) {
 		mFsm->exec(this);
 	}
 
 	if (isAlive()) {
-		sys->mTimers->_stop("pu-4");
+		//sys->mTimers->_stop("pu-4");
 		mEffectsObj->update();
 		mEffectsContext->mPosition = mLeafStemOffset;
-		sys->mTimers->_stop("pu-1");
+		//sys->mTimers->_stop("pu-1");
 
 		if (isAlive() && mWaterBox) {
+
 			int stateID  = getStateID();
 			int pikiType = getKind();
 			if (stateID != PIKISTATE_WaterHanged && stateID != PIKISTATE_Drown && !mCurrentState->dead() && pikiType != Blue
 			    && pikiType != Bulbmin && moviePlayer->mDemoState == 0 && mSimVelocity.y <= 0.1f) {
+
+				if (lastKnownNavi && lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS)) {
+					efx::TPkEffect* effectsObjWater = mEffectsObj;
+					if (!effectsObjWater->isFlag(PKEFF_Water)) {
+						efx::TPkEffect* effectsObjWat = mEffectsObj;
+						effectsObjWat->setFlag(PKEFF_Water);
+						effectsObjWat->createWater_(effectsObjWat->_14);
+						mDeathTimer = 10.0f;
+					}
+					return;
+				}
+
 				mFsm->transit(this, PIKISTATE_Drown, nullptr);
 				mEffectsObj->mHeight = mWaterBox->getSeaHeightPtr();
 			}
@@ -473,11 +504,22 @@ void Piki::attachRadar(bool)
  */
 void Piki::inWaterCallback(WaterBox* wbox)
 {
+
 	int stateID  = getStateID();
 	int pikiType = getKind();
 	if (stateID != PIKISTATE_WaterHanged && stateID != PIKISTATE_Drown && !mCurrentState->dead() && pikiType != Blue
 	    && pikiType != Bulbmin) {
 		if (moviePlayer->mDemoState == 0 && mSimVelocity.y <= 0.1f) {
+			if (lastKnownNavi && lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS)) {
+				efx::TPkEffect* effectsObjWater = mEffectsObj;
+				if (!effectsObjWater->isFlag(PKEFF_Water)) {
+					efx::TPkEffect* effectsObjWat = mEffectsObj;
+					effectsObjWat->setFlag(PKEFF_Water);
+					effectsObjWat->createWater_(effectsObjWat->_14);
+					mDeathTimer = 10.0f;
+				}
+				return;
+			}
 			mFsm->transit(this, PIKISTATE_Drown, nullptr);
 		} else {
 			return;
@@ -589,10 +631,19 @@ lbl_80148CFC:
  */
 void Piki::outWaterCallback()
 {
+	efx::TPkEffect* effectsObjWater = mEffectsObj;
+	effectsObjWater->killWater_();
+	if (effectsObjWater->isFlag(PKEFF_Water)) {
+		effectsObjWater->resetFlag(PKEFF_Water);
+		efx::createSimpleWaterOff(*effectsObjWater->_14);
+		mDeathTimer = -20.0f;
+	}
+
 	if (mCurrentState) {
 		mCurrentState->outWaterCallback(this);
 	}
 	mEffectsObj->doWaterExit();
+	
 }
 
 /**
@@ -667,10 +718,13 @@ f32 Piki::getSpeed(f32 multiplier)
 
 	f32 baseSpeed = scaleValue(1.0f, pikiMgr->mParms->mPikiParms.mRunSpeed.mValue);
 
-	if (mHappaKind == Flower) {
-		baseSpeed = pikiMgr->mParms->mPikiParms.mFlowerRunSpeed.mValue;
-	} else if (mHappaKind == Bud) {
-		baseSpeed = pikiMgr->mParms->mPikiParms.mBudRunSpeed.mValue;
+	//amogus
+	if (!this->lastKnownNavi || !this->lastKnownNavi->naviPowers->isPower(COMBAT_HAPPA)) {
+		if (mHappaKind == Flower) {
+			baseSpeed = pikiMgr->mParms->mPikiParms.mFlowerRunSpeed.mValue;
+		} else if (mHappaKind == Bud) {
+			baseSpeed = pikiMgr->mParms->mPikiParms.mBudRunSpeed.mValue;
+		}
 	}
 
 	int pikiType = getKind();
@@ -681,6 +735,10 @@ f32 Piki::getSpeed(f32 multiplier)
 		speed *= pikiMgr->mParms->mPikiParms.mWhiteRunSpeedMultiplier.mValue;
 	} else if (pikiType == Purple) {
 		speed *= pikiMgr->mParms->mPikiParms.mPurpleRunSpeedMultiplier.mValue;
+	}
+
+	if (this->lastKnownNavi) {
+		speed *= this->lastKnownNavi->naviPowers->speedAdjustPikis();
 	}
 
 	return speed;
@@ -868,20 +926,34 @@ f32 Piki::getAttackDamage()
 		return pikiMgr->mParms->mPikiParms.mRedAttackDamage.mValue;
 	}
 
+	float damage;
+
 	switch (getKind()) {
 	case Red:
-		return pikiMgr->mParms->mPikiParms.mRedAttackDamage.mValue;
+		damage = pikiMgr->mParms->mPikiParms.mRedAttackDamage.mValue;
 	case Blue:
-		return pikiMgr->mParms->mPikiParms.mBlueAttackDamage.mValue;
+		damage = pikiMgr->mParms->mPikiParms.mBlueAttackDamage.mValue;
 	case Yellow:
-		return pikiMgr->mParms->mPikiParms.mYellowAttackDamage.mValue;
+		damage = pikiMgr->mParms->mPikiParms.mYellowAttackDamage.mValue;
 	case Purple:
-		return pikiMgr->mParms->mPikiParms.mPurpleAttackDamage.mValue;
+		damage = pikiMgr->mParms->mPikiParms.mPurpleAttackDamage.mValue;
 	case White:
-		return pikiMgr->mParms->mPikiParms.mWhiteAttackDamage.mValue;
+		damage = pikiMgr->mParms->mPikiParms.mWhiteAttackDamage.mValue;
+	default:
+		damage = pikiMgr->mParms->mPikiParms.mBlueAttackDamage.mValue;
 	}
 	// Used for bulbmin + carrots
-	return pikiMgr->mParms->mPikiParms.mBlueAttackDamage.mValue;
+	
+	if (lastKnownNavi) {
+		if (lastKnownNavi->naviPowers->isPower(COMBAT_HAPPA)) {
+			if (getHappa() == Bud)
+				damage *= 1.25f;
+			if (getHappa() == Flower)
+				damage *= 1.5f;
+		}
+		damage *= lastKnownNavi->naviPowers->damageAdjustPikis();
+	}
+	return damage;
 }
 
 /**
@@ -931,6 +1003,12 @@ f32 Piki::getPelletCarryPower()
 		carryPower += pikiMgr->mParms->mPikiParms.mFlowerCarrySpeedBonus.mValue;
 	} else if (getHappa() == Bud) {
 		carryPower += pikiMgr->mParms->mPikiParms.mBudCarrySpeedBonus.mValue;
+	}
+
+	if (this->lastKnownNavi && this->lastKnownNavi->naviPowers->isPower(KEY_GAUGE)) {
+		PikiAI::ActTransport* bruh = (PikiAI::ActTransport*)getCurrAction();
+		if (strcmp(bruh->mPellet->mConfig->mParams.mName.mData, "key") == 0)
+			carryPower = 10.0f;
 	}
 
 	return carryPower;
@@ -1631,7 +1709,7 @@ void __sinit_piki_cpp()
 	stfs     f0, 4(r29)
 	stfs     f0, 8(r29)
 	lwz      r29, 0x14(r1)
-	lwz      r28, 0x10(r1)
+	lwz      r28, 0x10(r1) e
 	addi     r1, r1, 0x20
 	blr
 	*/

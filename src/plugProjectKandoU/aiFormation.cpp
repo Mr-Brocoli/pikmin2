@@ -126,7 +126,7 @@ void ActFormation::wallCallback(Vector3f&)
 	}
 
 	if (mTouchingWallTimer > 20) {
-		mTouchingWallTimer = 0;
+		mTouchingWallTimer = 0; // sus
 	}
 }
 

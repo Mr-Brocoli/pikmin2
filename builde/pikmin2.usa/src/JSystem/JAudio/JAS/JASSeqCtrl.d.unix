@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/JSystem/JAudio/JAS/JASSeqCtrl.o: src/JSystem/JAudio/JAS/JASSeqCtrl.cpp \
+	include/JSystem/JAudio/JAS/JASSeqCtrl.h \
+	include/types.h \
+	include/BuildSettings.h 

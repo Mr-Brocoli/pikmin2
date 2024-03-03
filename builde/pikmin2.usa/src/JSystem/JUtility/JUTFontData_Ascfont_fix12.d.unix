@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/JSystem/JUtility/JUTFontData_Ascfont_fix12.o: src/JSystem/JUtility/JUTFontData_Ascfont_fix12.cpp \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JUtility/JUTResFONT_Ascfont_fix12.h 

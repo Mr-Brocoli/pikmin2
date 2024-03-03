@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/dvd/dvdqueue.o: src/Dolphin/dvd/dvdqueue.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/Dolphin/dvd.h 

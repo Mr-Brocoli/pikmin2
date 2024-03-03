@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/Runtime/__va_arg.o: src/Dolphin/Runtime/__va_arg.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/PowerPC_EABI_Support/Runtime/__va_arg.h 

@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/PPC_EABI/critical_regions.gamecube.o: src/Dolphin/MSL_C/PPC_EABI/critical_regions.gamecube.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/critical_regions.h 

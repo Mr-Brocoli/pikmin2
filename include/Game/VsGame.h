@@ -540,6 +540,12 @@ struct TitleState : public State {
 	VsGameSection* mSection;                       // _38
 	Challenge2D_TitleInfo* mChallengeTitleInfo;    // _3C
 	Vs2D_TitleInfo* mVsTitleInfo;                  // _40
+
+	Viewport mViewport;           // _4020
+	J3DDrawBuffer* mDrawBufferA;  // _48CC
+	J3DDrawBuffer* mDrawBufferB;  // _48D0
+
+
 };
 /////////////////////////////////////////////////////////////////
 } // namespace VsGame

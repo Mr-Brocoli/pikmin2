@@ -1,0 +1,2 @@
+build/pikmin2.usa/src/JSystem/JMessage/data.o: src/JSystem/JMessage/data.cpp \
+	include/JSystem/JMessage/data.h 

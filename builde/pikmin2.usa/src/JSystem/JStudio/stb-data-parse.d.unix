@@ -1,0 +1,11 @@
+build/pikmin2.usa/src/JSystem/JStudio/stb-data-parse.o: src/JSystem/JStudio/stb-data-parse.cpp \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JStudio/stb.h \
+	include/JSystem/JStudio/object.h \
+	include/JSystem/JGadget/linklist.h \
+	include/stl/algorithm.h \
+	include/stl/iterator.h \
+	include/JSystem/JGadget/binary.h \
+	include/JSystem/JStudio/stb-data-parse.h \
+	include/JSystem/JStudio/stb-data.h 

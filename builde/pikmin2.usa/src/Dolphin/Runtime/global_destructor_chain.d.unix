@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/Runtime/global_destructor_chain.o: src/Dolphin/Runtime/global_destructor_chain.c \
+	include/PowerPC_EABI_Support/Runtime/global_destructor_chain.h \
+	include/types.h \
+	include/BuildSettings.h 

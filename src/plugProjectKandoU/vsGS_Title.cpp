@@ -18,6 +18,8 @@
 #include "System.h"
 #include "nans.h"
 
+#include "JSystem/J3D/J3DModelLoader.h"
+
 static const char vsGSTitleUnusedArray[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 static const char vsGSTitleName[]        = "vsGS_Title";
 
@@ -79,6 +81,32 @@ void TitleState::init(VsGameSection* section, StateArg* arg)
 
 	section->mChallengeStageData = nullptr;
 	section->mVsStageData        = nullptr;
+
+	sys->heapStatusStart("J3DDrawBuffer", nullptr);
+
+	mDrawBufferA          = new J3DDrawBuffer(0x400);
+	j3dSys.mDrawBuffer[0] = mDrawBufferA;
+
+	mDrawBufferB                     = new J3DDrawBuffer(0x400);
+	j3dSys.mDrawBuffer[1]            = mDrawBufferB;
+	j3dSys.mDrawBuffer[1]->mSortType = J3DDrawBuffer::J3DSORT_Z;
+	mDrawBufferA->frameInit();
+	mDrawBufferB->frameInit();
+
+	sys->heapStatusEnd("J3DDrawBuffer");
+
+
+	Graphics* gfx = sys->mGfx;
+	gfx->allocateViewports(1);
+	mViewport.mCamera = new LookAtCamera();
+	mViewport.updateCameraAspect();
+
+	u16 y = sys->getRenderModeObj()->efbHeight;
+	u16 x = sys->getRenderModeObj()->fbWidth;
+	Rectf rect(0.0f, 0.0f, x, y);
+	mViewport.setRect(rect);
+	gfx->addViewport(&mViewport);
+
 }
 
 static const char unusedVsTitleString[] = "コンクリート"; // 'concrete'
@@ -87,8 +115,52 @@ static const char unusedVsTitleString[] = "コンクリート"; // 'concrete'
  * @note Address: 0x80228554
  * @note Size: 0x3F4
  */
+
+SysShape::Model** obama;
+
 void TitleState::dvdload()
 {
+	NewCaptains* mNewCaptains = naviMgr->mNewCaptains;
+	obama                     = new SysShape::Model*[50];
+	int slot                  = -1;
+	int j                 = 0;
+	for (int i = 0; i != mNewCaptains->newCaptainNum; i++) {
+		if (mNewCaptains->newCaptains[i].slot == slot) {
+			slot = -1;
+			continue;
+		}
+		char susbruh[100];
+		char* toSprint = "/brocoli/captains/%s.bmd";
+		bool imitater  = false;
+		if (mNewCaptains->slotIsPower(i, IMITATER_POWER)) {
+			imitater = true;	
+			toSprint = "/brocoli/fake_captains/%s.bmd";
+		}
+		sprintf(susbruh, toSprint, mNewCaptains->newCaptains[i].name);
+
+		void* file
+		    = JKRDvdRipper::loadToMainRAM(susbruh, nullptr, Switch_0, 0, nullptr, JKRDvdRipper::ALLOC_DIR_BOTTOM, 0, nullptr, nullptr);
+		if (!file) {
+			file = JKRDvdRipper::loadToMainRAM("/brocoli/failsafe.bmd", nullptr, Switch_0, 0, nullptr, JKRDvdRipper::ALLOC_DIR_BOTTOM, 0,
+			                                   nullptr, nullptr);
+			// P2ASSERT(file, "No captain model or failsafe!");
+		}
+
+		J3DModelData* model = J3DModelLoaderDataBase::load(file, 0x20000030);
+		for (u16 j = 0; j < model->getShapeNum(); j++) {
+			J3DShape* shape = model->mShapeTable.mItems[j];
+			shape->setTexMtxLoadType(0x2000);
+			if (imitater) {
+				char grayScale = 0x57;
+				shape->getMaterial()->mTevBlock->setTevSwapModeTable(0, (J3DTevSwapModeTable*)&grayScale);
+			}
+		}
+
+		obama[j] = new SysShape::Model(model, 0, 2);
+		slot     = mNewCaptains->newCaptains[i].slot;
+		j++;
+	}
+
 	PSGame::SceneInfo scene;
 	if (gameSystem->isChallengeMode()) {
 		scene.mSceneType = PSGame::SceneInfo::CHALLENGE_MENU;
@@ -373,6 +445,7 @@ void TitleState::execVs(VsGameSection* section)
  */
 void TitleState::draw(VsGameSection* section, Graphics& gfx)
 {
+
 	if (mTitleStage != VSTITLE_Display) {
 		return;
 	}
@@ -383,6 +456,97 @@ void TitleState::draw(VsGameSection* section, Graphics& gfx)
 
 	gfx.mPerspGraph.setPort();
 	particle2dMgr->draw(0, 0);
+
+	const int numRows        = 5;
+	const int numCols        = 8;
+	const float screenWidth  = 640.0f;
+	const float screenHeight = 480.0f;
+
+	int cat = 0;
+	if (mPlayer1Controller->getButton() & Controller::PRESS_Y)
+		cat = 1;
+
+	int dog = naviMgr->mNewCaptains->chosenCaptains[cat];
+
+	int selectedRow = dog / numCols;
+	int selectedCol = dog % numCols;
+	switch (mPlayer1Controller->getButtonDown()) {
+	//case Controller::PRESS_UP:
+	case Controller::PRESS_DPAD_UP:
+		selectedRow = (selectedRow - 1 + numRows) % numRows;
+		break;
+	//case Controller::PRESS_LEFT:
+	case Controller::PRESS_DPAD_LEFT:
+		selectedCol = (selectedCol - 1 + numCols) % numCols;
+		break;
+	//case Controller::PRESS_RIGHT:
+	case Controller::PRESS_DPAD_RIGHT:
+		selectedCol = (selectedCol + 1) % numCols;
+		break;
+	//case Controller::PRESS_DOWN:
+	case Controller::PRESS_DPAD_DOWN:
+		selectedRow = (selectedRow + 1) % numRows;
+		break;
+	default:
+		// Handle other keys or ignore them
+		break;
+	}
+	naviMgr->mNewCaptains->chosenCaptains[cat] = selectedRow * numCols + selectedCol;
+
+	for (int row = 0; row < numRows; ++row) {
+		for (int col = 0; col < numCols; ++col) {
+			int index = row * numCols + col;
+
+			if (index < 40) {
+				Matrixf mtx;
+				PSMTXIdentity(mtx.mMatrix.mtxView);
+				PSMTXCopy(mtx.mMatrix.mtxView, j3dSys.mViewMtx);
+
+				Vector3f scale(1, 1, 1);
+				Vector3f rot(0, 0, 0);
+
+				// Adjust spacing based on screen resolution
+				float spacingX = screenWidth / numCols;
+				float spacingY = screenHeight / numRows;
+
+				Vector3f position(-(screenWidth / 2 + col * -spacingX), -row * spacingY + screenHeight/2, -590.0f);
+				mtx.makeSRT(scale, rot, position);
+
+				Vec one;
+				one.x = 3;
+				one.y = 3;
+				one.z = 3;
+				if (index == naviMgr->mNewCaptains->chosenCaptains[0] || index == naviMgr->mNewCaptains->chosenCaptains[1]) {
+					one.x = 5;
+					one.y = 5;
+					one.z = 5;
+				}
+				obama[index]->mJ3dModel->setBaseScale(one);
+				PSMTXCopy(mtx.mMatrix.mtxView, obama[index]->mJ3dModel->mPosMtx);
+				obama[index]->show();
+				obama[index]->mJ3dModel->calc();
+				obama[index]->mJ3dModel->entry();
+				obama[index]->mJ3dModel->viewCalc();
+				// obama[index]->mJ3dModel->makeDL();
+			}
+		}
+	}
+	
+	Viewport* vp = sys->mGfx->getViewport(0);
+	vp->setViewport();
+	vp->setProjection();
+	//mCameraMgr.setProjection();
+	//mLightMgr.setCameraMtx(mCameraMgr.mLookMatrix.mMatrix.mtxView);
+	//mFogMgr.setGX(mCameraMgr);
+	j3dSys.drawInit();
+	j3dSys.mDrawMode = J3DSys::SYSDRAW_Unk3;
+	mDrawBufferA->draw();
+	j3dSys.mDrawMode = J3DSys::SYSDRAW_Unk4;
+	mDrawBufferB->draw();
+	j3dSys.reinitGX();
+	mDrawBufferA->frameInit();
+	mDrawBufferB->frameInit();
+
 }
 
 /**

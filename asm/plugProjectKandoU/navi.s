@@ -5739,7 +5739,7 @@ lbl_constructor:
 /* 80143F68 00140EA8  81 9F 00 00 */	lwz r12, 0(r31)
 /* 80143F6C 00140EAC  81 8C 01 D8 */	lwz r12, 0x1d8(r12)
 /* 80143F70 00140EB0  7D 89 03 A6 */	mtctr r12
-/* 80143F74 00140EB4  4E 80 04 21 */	bctrl 
+/* bruh a80143F74 00140EB4  4E 80 04 21 */	bctrl 
 .L_80143F78:
 /* 80143F78 00140EB8  80 7F 02 8C */	lwz r3, 0x28c(r31)
 /* 80143F7C 00140EBC  38 81 00 2C */	addi r4, r1, 0x2c

@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/plugProjectHikinoU/PSCreatureMgr.o: src/plugProjectHikinoU/PSCreatureMgr.cpp \
+	include/types.h \
+	include/BuildSettings.h \
+	include/PSGame/SoundCreatureMgr.h 

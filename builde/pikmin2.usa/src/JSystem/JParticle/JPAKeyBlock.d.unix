@@ -1,0 +1,9 @@
+build/pikmin2.usa/src/JSystem/JParticle/JPAKeyBlock.o: src/JSystem/JParticle/JPAKeyBlock.cpp \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JParticle/JPABlock.h \
+	include/JSystem/JGeometry.h \
+	include/Dolphin/vec.h \
+	include/stl/float.h \
+	include/JSystem/JParticle/JPAMath.h \
+	include/Dolphin/mtx.h 

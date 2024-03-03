@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/MSL_Common/mbstring.o: src/Dolphin/MSL_C/MSL_Common/mbstring.c \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/mbstring.h \
+	include/types.h \
+	include/BuildSettings.h 

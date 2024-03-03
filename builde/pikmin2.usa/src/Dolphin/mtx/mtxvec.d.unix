@@ -1,0 +1,5 @@
+build/pikmin2.usa/src/Dolphin/mtx/mtxvec.o: src/Dolphin/mtx/mtxvec.c \
+	include/Dolphin/mtx.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/Dolphin/vec.h 

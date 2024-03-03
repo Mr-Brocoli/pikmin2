@@ -36,6 +36,8 @@
 #include "JSystem/J3D/J3DModelLoader.h"
 #include "nans.h"
 
+#include "Game/Navi.h"
+
 namespace {
 struct NotOff : public Game::WPCondition {
 	virtual bool satisfy(Game::WayPoint* wp) // 08
@@ -4073,7 +4075,11 @@ int Pellet::getTotalCarryPikmins()
 {
 	int total = 0;
 	for (int i = 0; i < PikiColorCount; i++) {
-		total += mPikminCount[i] * pikiMgr->getColorTransportScale(i);
+		//BROCOLI AMONG US
+		if (naviMgr->getAt(0)->naviPowers->isPower(TEAM_CARRY_EQUALITY) || naviMgr->getAt(1)->naviPowers->isPower(TEAM_CARRY_EQUALITY))
+			total += mPikminCount[i] * 2;
+		else 
+			total += mPikminCount[i] * pikiMgr->getColorTransportScale(i);
 	}
 	return total;
 }
@@ -4103,7 +4109,8 @@ void Pellet::onSlotStickStart(Creature* creature, s16 slot)
 	}
 
 	if (creature->isPiki()) {
-		int pikminType = static_cast<Piki*>(creature)->mPikiKind;
+		Piki* p        = static_cast<Piki*>(creature);
+		int pikminType = p->mPikiKind;
 		bool validType = (pikminType >= 0 && pikminType < PikiColorCount);
 		P2ASSERTLINE(3925, validType);
 
@@ -4136,7 +4143,8 @@ void Pellet::onSlotStickEnd(Creature* creature, s16 slot)
 	}
 
 	if (creature->isPiki()) {
-		int pikminType = static_cast<Piki*>(creature)->mPikiKind;
+		Piki* p        = static_cast<Piki*>(creature);
+		int pikminType = p->mPikiKind;
 		bool validType = (pikminType >= 0 && pikminType < PikiColorCount);
 		P2ASSERTLINE(3964, validType);
 

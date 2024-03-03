@@ -30,8 +30,11 @@
 #include "utilityU.h"
 #include "PowerPC_EABI_Support/MSL_C/MSL_Common/arith.h"
 
-//BROCOLI AMONGUS
 #include "Brocoli/NaviPowers.h"
+#include "Dolphin/rand.h"
+#include "Game/DeathMgr.h"
+#include "Game/generalEnemyMgr.h"
+#include "Game/VsGameSection.h"
 
 static const u32 fillerbytes[3] = { 0, 0, 0 };
 int numSearch;
@@ -84,10 +87,10 @@ Navi::Navi()
 	mFsm = new NaviFSM;
 	mFsm->init(this);
 
-	//naviPowers = new NaviPowers();
-
 	mCPlateMgr = new CPlate(100);
 	mMass      = 1.0f;
+
+	naviPowers = new NaviPowers();
 
 	mFootmarks = new Footmarks;
 	mFootmarks->alloc(16);
@@ -164,14 +167,37 @@ void Navi::onInit(Game::CreatureInitArg* arg)
 
 	mPluckingCounter = 0;
 	_269             = 0;
-	Vector3f navi_scale; // navi model scale
-	navi_scale = Vector3f(OLIMAR_SCALE);
 
-	if (mNaviIndex == NAVIID_Louie) { // case for Louie/President scale
-		navi_scale = Vector3f(LOUIE_SCALE);
+	int bruh = naviMgr->mNewCaptains->chosenCaptains[mNaviIndex];
+	if ((naviMgr->mNewCaptains->chosenCaptains[mNaviIndex] & (1ULL << IMITATER_POWER)) != 0)
+		bruh = naviMgr->mNewCaptains->chosenCaptains[mNaviIndex^1];
+
+	mScale = naviMgr->mNewCaptains->newCaptains[bruh].size;
+	naviPowers->powers.clear(); //idk
+	naviPowers->powers.set(naviMgr->mNewCaptains->newCaptains[bruh].powers);
+
+	if (naviPowers->isPower(STELLAR_ORB)) {
+		getOlimarData()->getItem(OlimarData::ODII_StellarOrb);
+	}
+	//Do this stuff once kind of deal
+	if (gameSystem->mSection->getCurrFloor() == 0) {
+		if (naviPowers->isPower(SPICY_UP)) {
+			incDopeCount(SPRAY_TYPE_SPICY);
+		}
+		if (naviPowers->isPower(MINTY_UP)) {
+			incDopeCount(SPRAY_TYPE_BITTER);
+		}
+		if (naviPowers->isPower(BONUS_PURPLES)) {
+			VsGameSection* bruh = static_cast<VsGameSection*>(gameSystem->mSection);
+			bruh->mContainer1.mContainer[Purple * 3] += 5;
+		}
+		if (naviPowers->isPower(BONUS_BULBMIN)) {
+			VsGameSection* bruh = static_cast<VsGameSection*>(gameSystem->mSection);
+			bruh->mContainer1.mContainer[Bulbmin * 3] += 10;
+		}
 	}
 
-	mScale = navi_scale;
+
 	int id = mNaviIndex;
 	mCursorMatAnim->start(&naviMgr->mCursorAnims[id]);
 	mArrowMatAnim->start(&naviMgr->mMarkerAnims[id]);
@@ -839,6 +865,17 @@ bool Navi::hasDope(int sprayType)
 	if (gameSystem->isVersusMode()) {
 		return (mSprayCounts[sprayType] > 0); // signed to generate andc
 	} else {
+
+		if (naviPowers->isPower(SPRAY_EXCHANGE) || naviMgr->getAt(GET_OTHER_NAVI(this))->naviPowers->isPower(SPRAY_EXCHANGE)) {
+			if (!playData->hasDope(SPRAY_TYPE_SPICY) && !playData->hasDope(SPRAY_TYPE_BITTER))
+				return false;
+			if (!playData->hasDope(sprayType)) {
+				playData->mSprayCount[sprayType]++;
+				playData->mSprayCount[sprayType ^ 1]--;
+			}
+			return true;
+		}
+
 		return playData->hasDope(sprayType);
 	}
 }
@@ -852,6 +889,11 @@ int Navi::getDopeCount(int sprayType)
 	if (gameSystem->isVersusMode()) {
 		return (mSprayCounts[sprayType]);
 	} else {
+		if (naviPowers->isPower(SPRAY_EXCHANGE) || naviMgr->getAt(GET_OTHER_NAVI(this))->naviPowers->isPower(SPRAY_EXCHANGE)) {
+			if (sprayType == SPRAY_TYPE_BITTER)
+				return 0;
+			return playData->getDopeCount(0) + playData->getDopeCount(1);
+		}
 		return playData->getDopeCount(sprayType);
 	}
 }
@@ -893,10 +935,33 @@ void Navi::incDopeCount(int sprayType)
 void Navi::applyDopes(int sprayType, Vector3f& sprayOrigin)
 {
 	if (sprayType == SPRAY_TYPE_BITTER) {
+
+		if (naviPowers->isPower(GLOBAL_SPRAYS)) {
+			GeneralMgrIterator<EnemyBase> it2(generalEnemyMgr);
+			CI_LOOP(it2)
+			{
+				EnemyBase* enemy = it2.getObject();
+				InteractDope dope(this, 1);
+				enemy->stimulate(dope);
+			}
+			return;
+		}
+
 		Sys::Sphere searchCirc(sprayOrigin, 140.0f);
 		Delegate1<Game::Navi, Game::CellObject*> funcCallback(this, applyDopeSmoke);
 
 		cellMgr->mapSearch(searchCirc, &funcCallback);
+		return;
+	}
+
+	if (naviPowers->isPower(GLOBAL_SPRAYS)) {
+		Iterator<Piki> iterator(pikiMgr);
+		CI_LOOP(iterator)
+		{
+			Piki* piki = *iterator;
+			InteractDope dope(this, sprayType);
+			piki->stimulate(dope);
+		}
 		return;
 	}
 
@@ -1071,7 +1136,16 @@ void Navi::transit(int next, StateArg* arg) { mFsm->transit(this, next, arg); }
  * @note Address: 0x801414A4
  * @note Size: 0xC
  */
-OlimarData* Navi::getOlimarData() { return playData->mOlimarData; }
+OlimarData chungus;
+OlimarData* Navi::getOlimarData() { 
+	//This is really stupid fix it later
+	if (naviPowers->isPower(PLUCKAPHONE)) {
+		chungus.getItem(OlimarData::ODII_ProfessionalNoisemaker);
+		chungus.getItem(OlimarData::ODII_AmplifiedAmplifier);
+		return &chungus;
+	}
+	return playData->mOlimarData;
+}
 
 /**
  * @note Address: 0x801414B0
@@ -1126,7 +1200,7 @@ void Navi::platCallback(PlatEvent& plat)
 {
 	Creature* obj = plat.mObj;
 	if (plat.mInstance->mId.match('elec', '*')) {
-		if (!playData->mOlimarData->hasItem(OlimarData::ODII_DreamMaterial)) {
+		if (!playData->mOlimarData->hasItem(OlimarData::ODII_DreamMaterial) && !naviPowers->isPower(E)) {
 			Vector3f origin = plat.mInstance->mMatrix->getBasis(2);
 			Vector3f objPos = obj->getPosition();
 			if (((mPosition.x - objPos.x) * origin.x + ((mPosition.y - objPos.y) * origin.y) + (mPosition.z - objPos.z) * origin.z)
@@ -1878,6 +1952,10 @@ void Navi::update()
 {
 	if (mInvincibleTimer) {
 		mInvincibleTimer--;
+	}
+	//this is stupid
+	if (naviPowers->isPower(TEAM_CARRY_EQUALITY)) {
+		naviMgr->getAt(GET_OTHER_NAVI(this))->naviPowers->setPower(TEAM_CARRY_EQUALITY);
 	}
 	mSoundObj->exec();
 	demoCheck();
@@ -2809,7 +2887,14 @@ void Navi::control()
  */
 void Navi::makeVelocity()
 {
-
+	if (naviPowers->isPower(NO_DEATHS_REQUIRED)) {
+		for (int i = 0; i != 8; i++) {
+			if (DeathMgr::get_cave(i) != 0) {
+				startDamage(100.0f);
+				return;
+			}
+		}
+	}
 
 	if (mController1
 	    && ((mController1->getButtonDown() & Controller::PRESS_A) || (mController1->getButtonDown() & Controller::PRESS_B)
@@ -2831,11 +2916,11 @@ void Navi::makeVelocity()
 		az = mController1->getMainStickY();
 	}
 	Vector3f inputPos(ax, 0.0f, az);
+
 	reviseController(inputPos);
 
 	f32 x = inputPos.x;
 	f32 z = inputPos.z;
-
 
 	Vector3f side = mCamera->getSideVector();
 	Vector3f up   = mCamera->getUpVector();
@@ -2856,14 +2941,28 @@ void Navi::makeVelocity()
 
 	Vector3f result(side * x + obama * z);
 
-	f32 speed;
-	if (playData->mOlimarData->hasItem(OlimarData::ODII_RepugnantAppendage)) {
-		speed = naviMgr->mNaviParms->mNaviParms.mRushBootSpeed();
-	} else {
-		speed = naviMgr->mNaviParms->mNaviParms.mMoveSpeed();
-		//speed *= naviPowers->speedAdjust();
-		//speed *= 1.5f;
+	if (naviPowers->isPower(LOBOTOMY_MOVEMENT) && x == 0 && z == 0) {
+		result = Vector3f(cos(mFaceDir), 0.0f, sin(mFaceDir));
 	}
+
+	//BROCOLI AMONGUS
+	f32 speed;
+	if (naviPowers->isPower(W) || !inWater()) {
+		if (playData->mOlimarData->hasItem(OlimarData::ODII_RepugnantAppendage)) {
+			speed = naviMgr->mNaviParms->mNaviParms.mRushBootSpeed();
+		} else {
+			speed = naviMgr->mNaviParms->mNaviParms.mMoveSpeed();
+		}
+		speed *= naviPowers->speedAdjust();
+
+		//Whatever bro who cares as long as it works
+		if (naviPowers->isPower(SOLO_HYPERSPEED) && mCPlateMgr->mActiveGroupSize == 0)
+			speed = 320.0f;
+
+	} else {
+		speed = 50.0f;
+	}
+
 	f32 dist = result.qLength();
 	if (dist > naviMgr->mNaviParms->mNaviParms.mNeutralStickThreshold()) {
 		mSceneAnimationTimer = 0.0f;
@@ -3510,6 +3609,14 @@ bool Navi::invincible()
  */
 void Navi::setInvincibleTimer(u8 timer) { mInvincibleTimer = timer; }
 
+void Navi::sansDodge() {
+	Vector3f sussyPos = getPosition();
+	sussyPos.x += randFloat() * 60.0f - 30.0f;
+	// sussyPos.y        = randFloat() * 20.0f - 10.0f;
+	sussyPos.z += randFloat() * 60.0f - 30.0f;
+	setPosition(sussyPos, false);
+}
+
 /**
  * @note Address: 0x80144408
  * @note Size: 0x208
@@ -3523,10 +3630,18 @@ void Navi::startDamage(f32 damage)
 	if (playData->mOlimarData->hasItem(OlimarData::ODII_JusticeAlloy)) {
 		damage *= naviMgr->mNaviParms->mNaviParms.mShieldDamageReductionRate();
 	}
+
+	damage *= naviPowers->damageAdjust();
+	if (naviPowers->isPower(SANS_ONE_HIT_KO)) {
+		sansDodge();
+		return;
+	}
+
 	if (getStateID() != NSID_Damaged) {
 		NaviDamageArg arg(damage);
 		mFsm->transit(this, NSID_Damaged, &arg);
 		mHealth -= damage;
+		NaviPowers::makeMomentumSad();
 		mSoundObj->startSound(PSSE_PL_ORIMA_DAMAGE, 0);
 		cameraMgr->startVibration(29, mNaviIndex);
 		rumbleMgr->startRumble(1, mNaviIndex);
@@ -3703,8 +3818,15 @@ void Navi::addDamage(f32 damage, bool flag)
 		damage *= naviMgr->mNaviParms->mNaviParms.mShieldDamageReductionRate();
 	}
 
+	damage *= naviPowers->damageAdjust();
+	if (naviPowers->isPower(SANS_ONE_HIT_KO)) {
+		OSReport("Sans Dodge should have occured!");
+		return;
+	}
+
 	if (isAlive() && !mCurrentState->invincible() && !invincible()) {
 		mHealth -= damage;
+		NaviPowers::makeMomentumSad();
 		if (flag) {
 			mSoundObj->startSound(PSSE_PL_ORIMA_DAMAGE, 0);
 			cameraMgr->startVibration(29, mNaviIndex);
@@ -4261,7 +4383,10 @@ void Navi::demowaitAllPikis()
  * @note Address: 0x8014548C
  * @note Size: 0x954
  */
-bool Navi::releasePikis()
+
+bool Navi::releasePikis() { releasePikis(nullptr, true); }
+
+bool Navi::releasePikis(Piki* discriminator, bool dismissNotThisType)
 {
 	if (!gameSystem->isFlag(2)) {
 		return false;
@@ -4276,17 +4401,53 @@ bool Navi::releasePikis()
 	InteractKaisan act(this);
 	loozy->stimulate(act);
 
+	bool isAllSameType = true;
+
 	s32 pikis = 0;
-	Piki* buffer[100];
+	Piki* baseBuffer[100];
+	s32 happaPikis = 0;
+	Piki* happaBuffer[100];
+	bool isSeenDifferentType = false;
+	Piki** buffer            = baseBuffer;
 	Iterator<Creature> iterator(mCPlateMgr);
 	CI_LOOP(iterator)
 	{
 		Piki* piki = static_cast<Piki*>(*iterator);
 		piki->getStateID();
+
 		if ((!piki->mCurrentState || piki->mCurrentState->releasable()) && piki->isAlive()) {
 			piki            = static_cast<Piki*>(*iterator);
-			buffer[pikis++] = piki;
+			if (discriminator) {
+				if (dismissNotThisType) {
+					if (piki->getKind() == discriminator->getKind()) {
+						if (piki->getHappa() == discriminator->getHappa()) {
+							continue;
+						}
+						happaBuffer[happaPikis++] = piki;
+						continue;
+					} else {
+						isSeenDifferentType = true;
+					}
+				} else {
+					if (piki->getKind() != discriminator->getKind()) {
+						isSeenDifferentType = true;
+						continue;
+					} else {
+						if (piki->getHappa() == discriminator->getHappa()) {
+							happaBuffer[happaPikis++] = piki;
+						}
+					}
+				}
+			} else {
+				isSeenDifferentType = true;
+			}
+			baseBuffer[pikis++] = piki;
 		}
+	}
+
+	if (!isSeenDifferentType) {
+		buffer = happaBuffer;
+		pikis  = happaPikis;
 	}
 
 	if (dismissnavi || pikis > 0) {
@@ -5834,10 +5995,15 @@ void Navi::findNextThrowPiki()
 	CI_LOOP(iterator)
 	{
 		Piki* piki       = static_cast<Piki*>(*iterator);
+		if (naviPowers->isPower(YELLOW_SUPREMACY) && piki->getKind() != Yellow)
+			continue;
+		if (naviPowers->isPower(YELLOW_HATRED) && piki->getKind() == Yellow)
+			continue;
 		Vector3f naviPos = getPosition();
 		Vector3f diff    = naviPos - piki->getPosition();
 		f32 dist         = diff.qLength2D();
-		if (piki->mNavi == this && dist < minDist && piki->getStateID() == PIKISTATE_Walk && piki->isThrowable()) {
+		if (piki->mNavi == this && dist < minDist && BRUHMACRO)
+		{
 			mNextThrowPiki = piki;
 			minDist        = dist;
 		}

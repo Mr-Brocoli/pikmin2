@@ -23,6 +23,10 @@
 #include "CollInfo.h"
 #include "Vector3.h"
 
+//BROCOLI AMONGUS
+#include "Brocoli/NaviPowers.h"
+#include "Brocoli/NewCaptains.h"
+
 struct Controller;
 
 enum NaviIndex {
@@ -138,7 +142,7 @@ struct Navi : public FakePiki, virtual public PelletView {
 	virtual void onStickEnd(Creature*);                                 // _15C
 	virtual bool ignoreAtari(Creature* toIgnore);                       // _190
 	virtual bool stimulate(Interaction& data);                          // _1A4
-	virtual char* getCreatureName() { return "navi"; }                  // _1A8 (weak)
+	virtual char* getCreatureName() { return "orima"; }                  // _1A8 (weak)
 	virtual s32 getCreatureID() { return mNaviIndex; }                  // _1AC (weak)
 
 	// vtable 2 (MotionListener + FakePiki + self)
@@ -193,12 +197,14 @@ struct Navi : public FakePiki, virtual public PelletView {
 	u32 ogGetNextThrowPiki();
 	bool procActionButton();
 	bool releasePikis();
+	bool releasePikis(Piki*, bool);
 	void reviseController(Vector3f&);
 	void set_movie_draw(bool);
 	void setDeadLaydown();
 	void setInvincibleTimer(u8);
 	void setLifeMax();
 	void setupNukuAdjustArg(ItemPikihead::Item*, NaviNukuAdjustStateArg&);
+	void sansDodge();
 	void startDamage(f32);
 	void startThrowDisable();
 	bool throwable();
@@ -238,11 +244,12 @@ struct Navi : public FakePiki, virtual public PelletView {
 	// _000      = VTBL
 	// _000-_250 = FakePiki
 	// _250      = ptr to PelletView
+
 	CPlate* mCPlateMgr;                     // _254
 	u8 _258;                                // _258
 	u8 mStickCount;                         // _259
 	s32 mSprayCounts[2];                    // _25C proven signed by Navi::hasDope
-	u8 _264[4];                             // _264
+	NaviPowers* naviPowers;                 // _264
 	bool mIsAlive;                          // _268
 	u8 _269;                                // _269
 	u8 mPluckingCounter;                    // _26A
@@ -284,7 +291,7 @@ struct Navi : public FakePiki, virtual public PelletView {
 	f32 mSceneAnimationTimer;               // _308
 	bool mCommandOn1;                       // _30C
 	bool mCommandOn2;                       // _30D
-	                                        // PelletView: _310 - _320
+                             // PelletView: _310 - _320
 };
 
 struct NaviMgr : public MonoObjectMgr<Navi>, public JKRDisposer {
@@ -341,7 +348,8 @@ struct NaviMgr : public MonoObjectMgr<Navi>, public JKRDisposer {
 	J3DModelData* mOlimarModel;              // _B0
 	J3DModelData* mLouieModel;               // _B4 (also president model)
 	J3DModelData* mCursorModelData;          // _B8
-	u8 _BC[8];                               // _BC, unused?
+	NewCaptains* mNewCaptains;
+	u8 _BC[4];                               // _BC, unused?
 	J3DModelData* mMarkerModelData;          // _C4
 	NaviParms* mNaviParms;                   // _C8
 	CollPartFactory* mCollData;              // _CC

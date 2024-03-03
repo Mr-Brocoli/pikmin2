@@ -1,0 +1,3 @@
+build/pikmin2.usa/src/Dolphin/os/OSAudioSystem.o: src/Dolphin/os/OSAudioSystem.c \
+	include/types.h \
+	include/BuildSettings.h 

@@ -1,0 +1,5 @@
+build/pikmin2.usa/src/JSystem/JAudio/JAS/JASRegisterParam.o: src/JSystem/JAudio/JAS/JASRegisterParam.cpp \
+	include/JSystem/JAudio/JAS/JASRegisterParam.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JSupport/JSU.h 

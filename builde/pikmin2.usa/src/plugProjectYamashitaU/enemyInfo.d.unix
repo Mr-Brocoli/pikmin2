@@ -1,0 +1,8 @@
+build/pikmin2.usa/src/plugProjectYamashitaU/enemyInfo.o: src/plugProjectYamashitaU/enemyInfo.cpp \
+	include/Game/enemyInfo.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/string.h \
+	include/stl/mem.h \
+	include/PowerPC_EABI_Support/Runtime/__mem.h \
+	include/stl/extras.h 

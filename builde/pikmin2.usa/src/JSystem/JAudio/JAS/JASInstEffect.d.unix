@@ -1,0 +1,5 @@
+build/pikmin2.usa/src/JSystem/JAudio/JAS/JASInstEffect.o: src/JSystem/JAudio/JAS/JASInstEffect.cpp \
+	include/JSystem/JAudio/JAS/JASInst.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JAudio/JAS/JASOscillator.h 

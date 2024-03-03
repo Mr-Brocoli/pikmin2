@@ -237,7 +237,7 @@ struct FakePiki : public Creature, public SysShape::MotionListener {
 	// _000-_178 = Creature
 	// _178-_17C = MotionListener
 	BitFlag<u32> mFakePikiFlags;            // _17C
-	f32 _180;                               // _180
+	f32 mDeathTimer;                        // _180
 	u32 _184;                               // _184
 	IDelegate* mDoAnimCallback;             // _188
 	s16 mRoomIndex;                         // _18C

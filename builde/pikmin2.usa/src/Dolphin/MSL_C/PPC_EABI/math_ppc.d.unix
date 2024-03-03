@@ -1,0 +1,5 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/PPC_EABI/math_ppc.o: src/Dolphin/MSL_C/PPC_EABI/math_ppc.c \
+	include/PowerPC_EABI_Support/MSL_C/PPC_EABI/math_ppc.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/fdlibm.h 

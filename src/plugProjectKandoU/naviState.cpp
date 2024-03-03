@@ -516,8 +516,13 @@ void NaviWalkState::collisionCallback(Navi* navi, CollEvent& event)
 		}
 	}
 
-	if (moviePlayer->mDemoState == 0 && gameSystem->isVersusMode() && collider->isTeki() && !collider->mCaptureMatrix && collider->isAlive()
-	    && static_cast<EnemyBase*>(collider)->getEnemyTypeID() == EnemyTypeID::EnemyID_Bomb && navi->mController1) {
+	bool cond = moviePlayer->mDemoState == 0 && gameSystem->isVersusMode() && collider->isTeki() && !collider->mCaptureMatrix
+	         && collider->isAlive() && static_cast<EnemyBase*>(collider)->getEnemyTypeID() == EnemyTypeID::EnemyID_Bomb
+	         && navi->mController1;
+
+	cond |= navi->naviPowers->isPower(CARRY_EVERYTHING) && !collider->isPiki() && navi->mController1;
+
+	if (cond) {
 
 		f32 x = -navi->mController1->getMainStickX(); // idk why this is negative lol.
 		f32 y = navi->mController1->getMainStickY();
@@ -526,7 +531,7 @@ void NaviWalkState::collisionCallback(Navi* navi, CollEvent& event)
 				mCollisionTimer += 3;
 			}
 
-			if (mCollisionTimer > 60) {
+			if (mCollisionTimer > 20) {
 				NaviCarryBombArg bombArg(collider);
 				transit(navi, NSID_CarryBomb, &bombArg);
 			}
@@ -2282,6 +2287,14 @@ void NaviPunchState::hitCallback(CollPart* collpart)
 			damage *= 2.5f;
 		}
 
+		bool impostaPunch = false;
+		if (mNavi->naviPowers->isPower(IMPOSTER_PUNCH)) {
+			if (randFloat() <= 0.02f) {
+				damage *= 9999.9f;
+				impostaPunch = true;
+			}
+		}
+
 		InteractAttack attack(mNavi, damage, collpart);
 		if (mTarget->stimulate(attack)) {
 			Vector3f targetColVec = collpart->mPosition;
@@ -2297,7 +2310,10 @@ void NaviPunchState::hitCallback(CollPart* collpart)
 			efx::TOrimapunch fxPunch;
 			fxPunch.create(&fxArg);
 
-			if (isRocketFist) {
+			if (impostaPunch) {
+				mNavi->mSoundObj->startSound(PSSE_EN_QUEEN_DEAD_BOMB2, 0);
+			}
+			else if (isRocketFist) {
 				mNavi->mSoundObj->startSound(PSSE_PK_SE_HIT_STONE, 0);
 			} else {
 				mNavi->mSoundObj->startSound(PSSE_PL_ORIMA_PUNCH_HIT, 0);
@@ -2587,7 +2603,7 @@ void NaviPunchState::onKeyEvent(Navi* navi, SysShape::KeyEvent const& event)
 
 	case KEYEVENT_END:
 		if (_1D) {
-			if (playData->mOlimarData->hasItem(OlimarData::ODII_BruteKnuckles)) {
+			if (playData->mOlimarData->hasItem(OlimarData::ODII_BruteKnuckles) || navi->naviPowers->isPower(ROCKET_FIST)) {
 				if (++_1E <= 1) {
 					navi->startMotion(IPikiAnims::PUNCH2, IPikiAnims::PUNCH2, navi, nullptr);
 					navi->mSoundObj->startSound(PSSE_PL_ORIMA_PUNCH_SWING, 0);
@@ -3845,10 +3861,11 @@ void NaviDopeState::init(Navi* navi, StateArg* stateArg)
 		}
 	}
 
-	if ((mDopeType == SPRAY_TYPE_BITTER || pikis > 0) && navi->hasDope(mDopeType)) {
+	if ((mDopeType == SPRAY_TYPE_BITTER || pikis > 0 || navi->naviPowers->isPower(GLOBAL_SPRAYS))
+		&& navi->hasDope(mDopeType)) {
 
-		if (mDopeType == SPRAY_TYPE_BITTER) {
-			navi->startMotion(IPikiAnims::GROWUP2, IPikiAnims::GROWUP2, navi, nullptr);
+		if (navi->naviPowers->isPower(GLOBAL_SPRAYS)) {
+			navi->startMotion(IPikiAnims::JUMP, IPikiAnims::JUMP, navi, nullptr);
 		} else {
 			navi->startMotion(IPikiAnims::GROWUP2, IPikiAnims::GROWUP2, navi, nullptr);
 		}
@@ -3866,6 +3883,7 @@ void NaviDopeState::init(Navi* navi, StateArg* stateArg)
 			squadPos = Vector3f(0.0f, 1.0f, 0.0f);
 		}
 
+		//PUT FUNNY PEPPINO THING HERE
 		u16 dopeType = SPRAY_TYPE_BITTER;
 		if (mDopeType != SPRAY_TYPE_BITTER) {
 			dopeType = SPRAY_TYPE_SPICY;
@@ -5289,14 +5307,42 @@ void NaviThrowWaitState::init(Navi* navi, StateArg* stateArg)
 	Iterator<Creature> iterator(navi->mCPlateMgr);
 	CI_LOOP(iterator)
 	{
-		Piki* piki       = static_cast<Piki*>(*iterator);
-		Vector3f naviPos = navi->getPosition();
-		Vector3f pikiPos = piki->getPosition();
-		f32 dist         = pikiPos.distance(naviPos); // why is there trig in this, WHY
+		Piki* piki                         = static_cast<Piki*>(*iterator);
+		const std::pair<f32, f32>* joeMama = JMath::sincosTable_.mTable;
+
+		// Vector3f naviPos = navi->getPosition();
+		// Vector3f pikiPos = piki->getPosition();
+		f32 dist      = 0;
+		Vector3f ohio = piki->getPosition() - navi->getPosition();
+		f32 thisBruh  = navi->mFaceDir;
+		if (thisBruh < 0)
+			thisBruh = -thisBruh;
+		// f32 thisBruh
+		thisBruh = joeMama[GetTableIdxPos(thisBruh)].second;
+		f32 bruh;
+		if (navi->mFaceDir < 0) {
+			bruh = -JMath::sincosTable_.mTable[GetTableIdxNeg(navi->mFaceDir)].first;
+		} else {
+			bruh = JMath::sincosTable_.mTable[GetTableIdxPos(navi->mFaceDir)].first;
+		}
 		if (dist > -0.1f) {
 			dist += 10.0f;
 		}
-		if (dist < minDist && piki->getStateID() == PIKISTATE_Walk && piki->isThrowable()) {
+		dist = ohio.length();
+		if (FABS(ohio.y) > 15.0f)
+			continue;
+		f32 huh = ohio.dot(Vector3f(bruh, 0, thisBruh));
+		if (huh > -0.1f) {
+			dist += 10.0f;
+		}
+
+		//bruh this redundancy is fucking chogos amogos
+		if (navi->naviPowers->isPower(YELLOW_SUPREMACY) && piki->getKind() != Yellow)
+			continue;
+		if (navi->naviPowers->isPower(YELLOW_HATRED) && piki->getKind() == Yellow)
+			continue;
+
+		if (dist < minDist && OHIOMACRO) {
 			retPiki = piki;
 			minDist = dist;
 		}
@@ -5763,6 +5809,7 @@ void NaviThrowWaitState::lockHangPiki(Navi* navi)
 	}
 }
 
+
 /**
  * @note Address: 0x801862F4
  * @note Size: 0xAE0
@@ -5778,48 +5825,220 @@ void NaviThrowWaitState::exec(Navi* navi)
 		return;
 	}
 
-	navi->control();
-
-	if (!mHeldPiki) {
-		if (!mNextPiki) {
-			return;
-		}
-		_28 -= sys->mDeltaTime;
-		if (_28 < 0.0f) {
-			transit(navi, NSID_Walk, nullptr);
-			return;
-		}
-		if (navi->mController1->getButtonDown() & Controller::PRESS_B) {
-			transit(navi, NSID_Walk, nullptr);
-			return;
-		}
-		CollPart* part   = navi->mCollTree->getCollPart('rhnd');
-		Vector3f handPos = part->mPosition;
-		Vector3f pikiPos = mNextPiki->getPosition();
-		f32 dist         = pikiPos.distance(handPos);
-		if (!(dist <= 32.5f)) {
-			return;
-		}
-		navi->mAnimSpeed = 30.0f;
-		navi->startMotion(IPikiAnims::THROWWWAIT, IPikiAnims::THROWWWAIT, this, nullptr);
-		navi->enableMotionBlend();
-		mHeldPiki = mNextPiki;
-		mNextPiki = nullptr;
-		rumbleMgr->startRumble(2, mNavi->mNaviIndex);
-		mHeldPiki->mFsm->transit(mHeldPiki, PIKISTATE_Hanged, 0);
-		_20 = true;
-	} else {
-		transit(navi, NSID_Punch, nullptr);
+	if (navi->mController1->getButtonDown() & Controller::PRESS_B) {
+		transit(navi, NSID_Walk, nullptr);
 		return;
 	}
 
-	navi->mNextThrowPiki = mNextPiki;
+	navi->control();
+
+	if (!mHeldPiki) {
+		if (mNextPiki) {
+			_28 -= sys->mDeltaTime;
+			if (_28 < 0.0f) {
+				transit(navi, NSID_Walk, nullptr);
+				return;
+			}
+
+			if (navi->mController1->getButtonDown() & Controller::PRESS_B) {
+				transit(navi, NSID_Walk, nullptr);
+				return;
+			}
+			CollPart* part   = navi->mCollTree->getCollPart('rhnd');
+			Vector3f handPos = part->mPosition;
+			Vector3f pikiPos = mNextPiki->getPosition();
+			f32 dist         = handPos.distance(pikiPos);
+			if (!(dist <= 32.5f))
+				return;
+
+			navi->mAnimSpeed = 30.0f;
+			navi->startMotion(IPikiAnims::THROWWWAIT, IPikiAnims::THROWWWAIT, this, nullptr);
+			navi->enableMotionBlend();
+			mHeldPiki = mNextPiki;
+			mNextPiki = nullptr;
+			rumbleMgr->startRumble(2, mNavi->mNaviIndex);
+			mHeldPiki->mFsm->transit(mHeldPiki, PIKISTATE_Hanged, 0);
+			_20 = true;
+		} else {
+			transit(navi, NSID_Punch, nullptr);
+			return;
+		}
+	}
+
+	if (navi->mController1->getButtonDown() & Controller::PRESS_X) {
+		navi->releasePikis(mHeldPiki, true);
+	}
+
+
+	navi->mNextThrowPiki = mHeldPiki;
+
 	NaviParms* parms     = static_cast<NaviParms*>(navi->mParms);
-	navi->_2B4           = _1C / 3.0f * (parms->mNaviParms.mMaxCallTime.mValue - parms->mNaviParms.mCircleDisappearTime.mValue)
-	           + parms->mNaviParms.mCircleDisappearTime.mValue;
+	float min        = parms->mNaviParms.mThrowDistanceMin.mValue;
+	float max                   = parms->mNaviParms.mThrowDistanceMax.mValue;
+	navi->_2B4 = _1C / 3.0f * (max - min) + min;
+
 	parms      = static_cast<NaviParms*>(navi->mParms);
-	navi->_2B8 = _1C / 3.0f * (parms->mNaviParms.mMaxCallTime.mValue - parms->mNaviParms.mCircleDisappearTime.mValue)
-	           + parms->mNaviParms.mCircleDisappearTime.mValue;
+	max                   = parms->mNaviParms.mThrowHeightMax.mValue;
+	min = parms->mNaviParms.mThrowHeightMin.mValue;
+	navi->_2B8 = _1C / 3.0f * (max - min) + min;
+
+	if (mHeldPiki && _20) {
+		int stateID = mHeldPiki->getStateID();
+		if (stateID != 4 && stateID != 3) {
+			transit(navi, NSID_Walk, nullptr);
+			return;
+		}
+	}
+
+	Piki* heldPikiForDismiss = mHeldPiki;
+	u32 input = navi->mController1->getButtonDown();
+	if (input & Controller::PRESS_DPAD_RIGHT || input & Controller::PRESS_Y) {
+		this->mCurrHappa = -1;
+		int type         = mHeldPiki->getKind();
+		int pikisNext[6];
+		for (int i = 0; i < 6; i++) {
+			pikisNext[i] = ((type + i + 1) % 7);
+		}
+		//}
+
+		Piki* newPiki = nullptr;
+		for (int i = 0; i < 6; i++) {
+			Piki* p = findNearestColorPiki(navi, pikisNext[i]);
+			if (p) {
+				newPiki = p;
+				break;
+			}
+		}
+		if (newPiki) {
+			Piki* held = mHeldPiki;
+			if (held->mNavi) {
+				if (type == 5)
+					held->mNavi->mSoundObj->stopSound(0x286b, 0);
+				else
+					held->mNavi->mSoundObj->stopSound(0x2802, 0);
+			}
+			held->mFsm->transit(held, PIKISTATE_Walk, 0);
+			mHeldPiki = newPiki;
+			newPiki->mFsm->transit(newPiki, PIKISTATE_Hanged, 0);
+			sortPikis(navi);
+			PSSystem::spSysIF->playSystemSe(0x1822, 0);
+			rumbleMgr->startRumble(2, navi->mNaviIndex);
+			if (input & Controller::PRESS_Y) {
+				navi->releasePikis(heldPikiForDismiss, false);
+			}
+			return;
+		}
+	} else if (input & Controller::PRESS_DPAD_LEFT) {
+		mCurrHappa = -1;
+		int type   = mHeldPiki->getKind();
+		int pikisNext[6];
+		for (int i = 0; i < 6; i++) {
+			pikisNext[i] = ((type + (5-i) + 1) % 7);
+		}
+
+		Piki* newPiki = nullptr;
+		for (int i = 0; i < 6; i++) {
+			Piki* p = findNearestColorPiki(navi, pikisNext[i]);
+			if (p) {
+				newPiki = p;
+				break;
+			}
+		}
+		if (newPiki) {
+			Piki* held = mHeldPiki;
+			if (held->mNavi) {
+				if (type == 5)
+					held->mNavi->mSoundObj->stopSound(0x286b, 0);
+				else
+					held->mNavi->mSoundObj->stopSound(0x2802, 0);
+			}
+			held->mFsm->transit(held, PIKISTATE_Walk, 0);
+			mHeldPiki = newPiki;
+			newPiki->mFsm->transit(newPiki, PIKISTATE_Hanged, 0);
+			sortPikis(navi);
+			PSSystem::spSysIF->playSystemSe(0x1822, 0);
+			rumbleMgr->startRumble(2, navi->mNaviIndex);
+			return;
+		}
+	} else if (input & Controller::PRESS_DPAD_UP || input & Controller::PRESS_DPAD_DOWN
+	           || (heldPikiForDismiss == mHeldPiki && (input & Controller::PRESS_Y))) {
+		int type  = mHeldPiki->getKind();
+		int happa = mHeldPiki->getHappa();
+		Piki* newPiki = nullptr;
+		for (int i = 0; i < 2; i++) {
+			if (input & Controller::PRESS_DPAD_DOWN) {
+				mCurrHappa = (mCurrHappa + 2) % 3;
+			} else {
+				mCurrHappa = (mCurrHappa + 1) % 3;
+			}
+			newPiki = findNearestColorPiki(navi, type);
+			if (newPiki) {
+				if (newPiki->getHappa() != happa) {
+					break;
+				}
+				newPiki = nullptr;
+			}
+		}
+		if (newPiki) {
+			Piki* held = mHeldPiki;
+			if (held->mNavi) {
+				if (type == 5)
+					held->mNavi->mSoundObj->stopSound(0x286b, 0);
+				else
+					held->mNavi->mSoundObj->stopSound(0x2802, 0);
+			}
+			held->mFsm->transit(held, PIKISTATE_Walk, 0);
+			mHeldPiki = newPiki;
+			newPiki->mFsm->transit(newPiki, PIKISTATE_Hanged, 0);
+			sortPikis(navi);
+			PSSystem::spSysIF->playSystemSe(0x1822, 0);
+			rumbleMgr->startRumble(2, navi->mNaviIndex);
+			if (input & Controller::PRESS_Y) {
+				navi->releasePikis(heldPikiForDismiss, false);
+			}
+			return;
+		}
+	}
+	if (heldPikiForDismiss == mHeldPiki && (input & Controller::PRESS_Y)) {
+		mHeldPiki->mFsm->transit(mHeldPiki, PIKISTATE_Walk, 0);
+		mHeldPiki = nullptr;
+		navi->releasePikis(heldPikiForDismiss, false);
+		return;
+	}
+	if (!(navi->mController1->getButton() & Controller::PRESS_A)) {
+		sortPikis(navi);
+		parms = static_cast<NaviParms*>(navi->mParms);
+		navi->mHoldPikiTimer = _1C / 3.0f * parms->mNaviParms.mTimeLimitForThrowing.mValue;
+		NaviThrowInitArg arg;
+		arg.mPiki = mHeldPiki;
+		transit(navi, NSID_Throw, &arg);
+		return;
+	} 
+	navi->mHoldPikiTimer += sys->mDeltaTime;
+	parms = static_cast<NaviParms*>(navi->mParms);
+	if (navi->mHoldPikiTimer > parms->mNaviParms.mTimeLimitForThrowing) {
+		navi->mHoldPikiTimer = parms->mNaviParms.mTimeLimitForThrowing;
+	}
+	if (_2C > 0.0f) {
+		_2C -= sys->mDeltaTime;
+		if (_2C <= 0.0f)
+			sortPikis(navi);
+		return;
+	}
+	
+	CPlate* thePlate = navi->mCPlateMgr;
+	if (thePlate->mActiveGroupSize > 0) {
+		Vector3f dog     = thePlate->mSlots->_0C;
+		Vector3f hmm = dog - navi->getPosition();
+		f32 dist              = hmm.length();
+		if (dist > 30.0f) {
+			Vector3f naviPos = navi->getPosition();
+			Vector3f naviVel = navi->getVelocity();
+			navi->mCPlateMgr->setPos(naviPos, navi->mFaceDir + PI, naviVel, 1.0f);
+			sortPikis(navi);
+		}
+	}
+
 
 	/*
 	stwu     r1, -0xf0(r1)
@@ -6608,7 +6827,7 @@ Piki* NaviThrowWaitState::findNearestColorPiki(Navi* navi, int color)
 		if (piki->getKind() == color && (mCurrHappa == -1 || mCurrHappa == piki->getHappa())) {
 			Vector3f diff = piki->getPosition() - navi->getPosition();
 			f32 dist      = diff.length();
-			if (dist < minDist && piki->getStateID() == PIKISTATE_Walk && piki->isThrowable()) {
+			if (dist < minDist && OHIOMACRO) {
 				retpiki = piki;
 				minDist = dist;
 			}
@@ -6809,11 +7028,12 @@ void NaviPelletState::init(Navi* navi, StateArg* stateArg)
 	arg.mPosition  = pos;
 	arg.mEnemy     = navi;
 	arg.mMatrix    = &navi->mBaseTrMatrix;
-	if (navi->mNaviIndex == NAVIID_Olimar) {
+	/* if (navi->mNaviIndex == NAVIID_Olimar) {
 		arg.mScale = OLIMAR_SCALE;
 	} else {
 		arg.mScale = LOUIE_SCALE;
-	}
+	}*/
+	arg.mScale = navi->mScale;
 	navi->becomePellet(&arg);
 	navi->setAtari(false);
 	mState = 0;

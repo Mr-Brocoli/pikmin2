@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/TRK_MINNOW_DOLPHIN/CircleBuffer.o: src/Dolphin/TRK_MINNOW_DOLPHIN/CircleBuffer.c \
+	include/PowerPC_EABI_Support/MetroTRK/custconn/CircleBuffer.h \
+	include/types.h \
+	include/BuildSettings.h 

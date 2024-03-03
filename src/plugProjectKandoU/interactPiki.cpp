@@ -39,6 +39,7 @@ bool InteractFueFuki::actPiki(Game::Piki* piki)
 	if (piki->mBrain->mActionId == PikiAI::ACT_Teki || !piki->isPikmin()) {
 		return false;
 	}
+
 	if (piki->mCurrentState->callable()) {
 		PikiAI::CreatureActionArg fueFukiArg = mCreature;
 		piki->mBrain->start(PikiAI::ACT_Teki, &fueFukiArg);
@@ -64,6 +65,65 @@ inline bool vsFlute(Piki* piki, Navi* navi)
 
 bool InteractFue::actPiki(Game::Piki* piki)
 {
+	if (mCreature) {
+		if (mCreature->isNavi()) {
+			Navi* nv = (Navi*)mCreature;
+			if (nv->naviPowers->isPower(YELLOW_HATRED) && piki->getKind() == Yellow)
+				return false;
+
+			if (nv->naviPowers->isPower(YELLOW_SUPREMACY)) {
+				if (piki->getKind() != Yellow)
+					return false;
+				piki->startDope(1);
+				piki->changeHappa(Flower);
+				piki->mDopeTime = 10.0f;
+			}
+
+			if (nv->naviPowers->isPower(WHITHER_WHISTLE))
+				piki->changeHappa(Leaf);
+			else if (nv->naviPowers->isPower(BUD_WHISTLE))
+				piki->changeHappa(Bud);
+			else if (nv->naviPowers->isPower(FLOWER_WHISTLE))
+				piki->changeHappa(Flower);
+		}
+	}
+
+	// BROCOLI AMONGUS
+	if (piki->mDeathTimer >= -10.0f) {
+		if (piki->mFsm->mStateID != PIKISTATE_Dying) {
+			float oldDeath                 = piki->mDeathTimer;
+			piki->mDeathTimer              = -20.0f;
+			efx::TPkEffect* effectsObjFire = piki->mEffectsObj;
+			effectsObjFire->killMoe_();
+			if (effectsObjFire->isFlag(PKEFF_Fire)) {
+				effectsObjFire->resetFlag(PKEFF_Fire);
+				effectsObjFire->createMoeSmoke_(effectsObjFire->_0C);
+				effectsObjFire->mMoeSmokeTimer = 60;
+				efx::createSimpleChinka(*effectsObjFire->_0C);
+			}
+
+			efx::TPkEffect* effectsObjGas = piki->mEffectsObj;
+			effectsObjGas->killChudoku_();
+			if (effectsObjGas->isFlag(PKEFF_Gas)) {
+				effectsObjGas->resetFlag(PKEFF_Gas);
+				efx::createSimpleGedoku(*effectsObjGas->_0C);
+				piki->mDeathTimer = -20.0f;
+			}
+
+			// the bubbles drowning bruh sus no cap check if in wate rbruh dog
+			efx::TPkEffect* effectsObjWater = piki->mEffectsObj;
+			if (effectsObjWater->isFlag(PKEFF_Water)) {
+				if (piki->inWater()) {
+					piki->mDeathTimer = oldDeath;
+				} else {
+					effectsObjWater->killWater_();
+					effectsObjWater->resetFlag(PKEFF_Water);
+					efx::createSimpleWaterOff(*effectsObjWater->_14);
+				}
+			}
+		}
+	}
+
 	if (gameSystem->isStoryMode() && gameSystem->mTimeMgr->mDayCount == 0 && !playData->isDemoFlag(DEMO_Reunite_Captains)) {
 		// the check for if it is day 1 and the captains are separated
 		if (mCreature->isNavi()) {
@@ -224,7 +284,10 @@ bool InteractDope::actPiki(Game::Piki* piki)
 	if (mSprayType != SPRAY_TYPE_BITTER && currState->dopable() && !piki->doped()) {
 		DopeStateArg spicyArg;
 		spicyArg._00 = mSprayType;
-		piki->mFsm->transit(piki, PIKISTATE_Dope, &spicyArg);
+		piki->startDope(1);
+		piki->changeHappa(Flower);
+		//Dope state is stupid!
+		//piki->mFsm->transit(piki, PIKISTATE_Dope, &spicyArg);
 		return true;
 	}
 	if (gameSystem->isVersusMode() && mSprayType == SPRAY_TYPE_BITTER) {
@@ -343,6 +406,13 @@ bool InteractDenki::actPiki(Game::Piki* piki)
 	int pikiKind = piki->getKind();
 	if (pikiKind != Yellow && pikiKind != Bulbmin) {
 		if (currState && currState->transittable(PIKISTATE_DenkiDying)) {
+
+			if (piki->lastKnownNavi && piki->lastKnownNavi->naviPowers->isPower(HAZARD_HELP)) {
+				BlowStateArg witherArg(mDirection, 1.0f, false, 6, mCreature);
+				piki->mFsm->transit(piki, PIKISTATE_Blow, &witherArg);
+				return true;
+			}
+						
 			piki->mFsm->transit(piki, PIKISTATE_DenkiDying, nullptr);
 			return true;
 		}
@@ -430,6 +500,38 @@ bool InteractSuikomi_Test::actPiki(Game::Piki* piki)
 	return true;
 }
 
+bool fearlessCheck(Game::Piki* piki, u16 panicType)
+{
+	if (piki->mDeathTimer > 0.0f)
+		return true;
+	if (!piki->lastKnownNavi || !piki->lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS))
+		return false;
+	piki->mDeathTimer = piki->getParms()->mPikiParms.mPanicMaxTime.mValue;
+	if (piki->lastKnownNavi && piki->lastKnownNavi->naviPowers->isPower(HAZARD_HELP)) {
+		piki->mDeathTimer *= 2;
+	}
+	piki->mDeathTimer *= (0.1f * randFloat() + 1.0f);
+	switch (panicType) {
+	case PIKIPANIC_Water:
+		efx::TPkEffect* effectsObjWat = piki->mEffectsObj;
+		effectsObjWat->setFlag(PKEFF_Water);
+		effectsObjWat->createWater_(effectsObjWat->_14);
+		break;
+
+	case PIKIPANIC_Gas:
+		efx::TPkEffect* effectsObjGas = piki->mEffectsObj;
+		effectsObjGas->setFlag(PKEFF_Gas);
+		effectsObjGas->createChudoku_(effectsObjGas->_0C);
+		break;
+	case PIKIPANIC_Fire:
+		efx::TPkEffect* effectsObjFire = piki->mEffectsObj;
+		effectsObjFire->setFlag(PKEFF_Fire);
+		effectsObjFire->createMoe_(effectsObjFire->_0C);
+		break;
+	}
+	return true;
+}
+
 /**
  * @note Address: 0x80194328
  * @note Size: 0x118
@@ -451,6 +553,10 @@ bool InteractFire::actPiki(Game::Piki* piki)
 			}
 			PanicStateArg panicFire;
 			panicFire.mPanicType = PIKIPANIC_Fire;
+
+			if (fearlessCheck(piki, PIKIPANIC_Fire))
+				return false;
+
 			piki->mFsm->transit(piki, PIKISTATE_Panic, &panicFire);
 			return true;
 		}
@@ -509,6 +615,10 @@ bool InteractBubble::actPiki(Game::Piki* piki)
 			}
 			PanicStateArg panicBubble;
 			panicBubble.mPanicType = PIKIPANIC_Water;
+
+			if (fearlessCheck(piki, PIKIPANIC_Water))
+				return false;
+
 			piki->mFsm->transit(piki, PIKISTATE_Panic, &panicBubble);
 			return true;
 		}
@@ -541,6 +651,10 @@ bool InteractGas::actPiki(Game::Piki* piki)
 			}
 			PanicStateArg panicGas;
 			panicGas.mPanicType = PIKIPANIC_Gas;
+
+			if (fearlessCheck(piki, PIKIPANIC_Gas))
+				return false;
+
 			piki->mFsm->transit(piki, PIKISTATE_Panic, &panicGas);
 			return true;
 		}
@@ -692,6 +806,7 @@ bool InteractKill::actPiki(Game::Piki* piki)
 		}
 	}
 	piki->kill(mKillArg);
+	NaviPowers::makeMomentumSad();
 	return true;
 }
 

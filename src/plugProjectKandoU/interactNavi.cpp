@@ -2,6 +2,7 @@
 #include "Game/NaviState.h"
 #include "Game/Interaction.h"
 #include "Game/Entities/Sarai.h"
+#include "Game/CPlate.h"
 
 #include "PSM/Navi.h"
 
@@ -44,7 +45,7 @@ bool InteractSarai::actNavi(Game::Navi* navi)
  */
 bool InteractBomb::actNavi(Game::Navi* navi)
 {
-	if ((gameSystem->isFlag(GAMESYS_IsGameWorldActive)) == FALSE) {
+	if ((gameSystem->isFlag(GAMESYS_IsGameWorldActive)) == FALSE || navi->naviPowers->isPower(B)) {
 		return false;
 	}
 
@@ -60,7 +61,7 @@ bool InteractBomb::actNavi(Game::Navi* navi)
 bool InteractWind::actNavi(Game::Navi* navi)
 {
 	OlimarData* oData = navi->getOlimarData();
-	if (oData->hasItem(OlimarData::ODII_RepugnantAppendage)) {
+	if (oData->hasItem(OlimarData::ODII_RepugnantAppendage) || navi->naviPowers->isPower(HEAVY)) {
 		return false;
 	}
 
@@ -85,7 +86,7 @@ bool InteractWind::actNavi(Game::Navi* navi)
 bool InteractDenki::actNavi(Game::Navi* navi)
 {
 	if (!gameSystem || gameSystem->isFlag(GAMESYS_IsGameWorldActive)) {
-		if (!playData->mOlimarData->hasItem(OlimarData::ODII_DreamMaterial)) {
+		if (!playData->mOlimarData->hasItem(OlimarData::ODII_DreamMaterial) && !navi->naviPowers->isPower(E)) {
 			NaviFlickArg flickArg(mCreature, mDirection, mDamage);
 			navi->transit(NSID_Flick, &flickArg);
 			return true;
@@ -149,6 +150,10 @@ bool InteractPress::actNavi(Game::Navi* navi)
 		NaviState* naviState = navi->mCurrentState;
 
 		if (!naviState->invincible() && naviState->pressable()) {
+			if (navi->naviPowers->isPower(SANS_ONE_HIT_KO)) {
+				navi->sansDodge();
+				return;
+			}
 			navi->addDamage(mDamage, true);
 			navi->mFsm->transit(navi, NSID_Pressed, nullptr);
 		} else {
@@ -165,7 +170,7 @@ bool InteractPress::actNavi(Game::Navi* navi)
  */
 bool InteractFire::actNavi(Game::Navi* navi)
 {
-	if (playData->mOlimarData[0].hasItem(OlimarData::ODII_ForgedCourage)) {
+	if (playData->mOlimarData[0].hasItem(OlimarData::ODII_ForgedCourage) || navi->naviPowers->isPower(F)) {
 		return false;
 	}
 
@@ -197,6 +202,10 @@ bool InteractBubble::actNavi(Game::Navi* navi)
 			return false;
 		}
 
+		//Bubble should at least hurt captains 10% if they don't have the water immunity
+		if (mDamage < 5 && !navi->naviPowers->isPower(W))
+			mDamage = 5;
+
 		navi->startDamage(mDamage);
 		return true;
 	}
@@ -206,7 +215,13 @@ bool InteractBubble::actNavi(Game::Navi* navi)
  * @note Address: 0x801D85F0
  * @note Size: 0x8
  */
-bool InteractGas::actNavi(Game::Navi*) { return false; }
+bool InteractGas::actNavi(Game::Navi* navi) 
+{ 
+	if (navi->naviPowers->isPower(P))
+		return false;
+	navi->startDamage(10); 
+	return true; 
+}
 
 /**
  * @note Address: 0x801D85F8
@@ -248,11 +263,19 @@ bool InteractFue::actNavi(Game::Navi* navi)
 	}
 
 	if (navi->getStateID() != NSID_Follow) {
-		NaviFollowArg followArg(_09);
-		navi->transit(NSID_Follow, &followArg);
-
 		Navi* otherNavi = naviMgr->getAt(1 - navi->mNaviIndex);
 		InteractFue fue(otherNavi, true, true);
+
+		if (otherNavi->naviPowers->isPower(YELLOW_SUPREMACY) != navi->naviPowers->isPower(YELLOW_SUPREMACY)) {
+			return false;
+		}
+
+		if (otherNavi->naviPowers->isPower(YELLOW_HATRED) != navi->naviPowers->isPower(YELLOW_HATRED)) {
+			return false;
+		}
+
+		NaviFollowArg followArg(_09);
+		navi->transit(NSID_Follow, &followArg);
 
 		Iterator<Creature> cellIt((Container<Creature>*)navi->mCPlateMgr);
 

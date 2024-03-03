@@ -1,0 +1,11 @@
+build/pikmin2.usa/src/JSystem/JAudio/JAS/JASDriverIF.o: src/JSystem/JAudio/JAS/JASDriverIF.cpp \
+	include/JSystem/JAudio/JAS/JASCallbackMgr.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JAudio/JAS/JASDriver.h \
+	include/JSystem/JAudio/JAS/JASDsp.h \
+	include/Dolphin/dsp.h \
+	include/Dolphin/OS/OSUtil.h \
+	include/Dolphin/OS/OSContext.h \
+	include/Dolphin/OS/OSInterrupt.h \
+	include/Dolphin/OS/OSException.h 

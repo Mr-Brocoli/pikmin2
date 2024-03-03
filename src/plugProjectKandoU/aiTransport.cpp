@@ -1,6 +1,7 @@
 #include "Dolphin/rand.h"
 #include "Game/Entities/ItemOnyon.h"
 #include "Game/PikiMgr.h"
+#include "Game/Navi.h"
 #include "Game/Stickers.h"
 #include "Game/gameStat.h"
 #include "Game/pelletMgr.h"
@@ -306,7 +307,11 @@ int ActTransport::execLift()
 		if (creature->isPiki()) {
 			Game::Piki* piki = static_cast<Game::Piki*>(creature);
 			if (piki->getCurrActionID() == ACT_Transport && static_cast<ActTransport*>(piki->getCurrAction())->mIsLiftAnimReady) {
-				carryCapacity += Game::pikiMgr->getColorTransportScale(piki->getKind());
+				//this might seem stupid but remember colortransportscale doesn't have access anywyas
+				if (piki->lastKnownNavi && piki->lastKnownNavi->naviPowers->isPower(TEAM_CARRY_EQUALITY))
+					carryCapacity += 2;
+				else 
+					carryCapacity += Game::pikiMgr->getColorTransportScale(piki->getKind());
 			}
 		}
 	}

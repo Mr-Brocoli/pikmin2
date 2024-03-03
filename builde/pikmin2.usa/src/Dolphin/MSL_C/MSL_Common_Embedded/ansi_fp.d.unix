@@ -1,0 +1,21 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/MSL_Common_Embedded/ansi_fp.o: src/Dolphin/MSL_C/MSL_Common_Embedded/ansi_fp.c \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/ansi_fp.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/math.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/math_api.h \
+	include/stl/fdlibm.h \
+	include/stl/float.h \
+	include/stl/fdlibm.h \
+	include/stl/ctype.h \
+	include/stl/locale.h \
+	include/stl/stdlib.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/alloc.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/arith.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/mbstring.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/rand.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/strtold.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/strtoul.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/ctype_api.h \
+	include/stl/limits.h \
+	include/stl/iterator.h 

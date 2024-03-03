@@ -16,6 +16,8 @@
 #include "Game/PikiParms.h"
 #include "nans.h"
 
+#include "Game/Navi.h"
+
 static const int unusedAiPrimArray[] = { 0, 0, 0 };
 static const char unusedAiPrimName[] = "aiPrimitives";
 

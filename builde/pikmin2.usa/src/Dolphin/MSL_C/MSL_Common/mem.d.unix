@@ -1,0 +1,5 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/MSL_Common/mem.o: src/Dolphin/MSL_C/MSL_Common/mem.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/mem.h \
+	include/PowerPC_EABI_Support/Runtime/__mem.h 

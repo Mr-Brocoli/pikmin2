@@ -1,0 +1,7 @@
+build/pikmin2.usa/src/Dolphin/TRK_MINNOW_DOLPHIN/UDP_Stubs.o: src/Dolphin/TRK_MINNOW_DOLPHIN/UDP_Stubs.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/Dolphin/OS/OSInterrupt.h \
+	include/Dolphin/OS/OSContext.h \
+	include/Dolphin/OS/OSException.h \
+	include/Dolphin/OS/OSUtil.h 

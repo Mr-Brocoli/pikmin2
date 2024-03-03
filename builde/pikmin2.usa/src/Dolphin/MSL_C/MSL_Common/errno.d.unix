@@ -1,0 +1,2 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/MSL_Common/errno.o: src/Dolphin/MSL_C/MSL_Common/errno.c \
+	include/stl/errno.h 

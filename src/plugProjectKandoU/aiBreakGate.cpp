@@ -12,7 +12,7 @@ static const char breakGateName[] = "actBreakWall";
  * @note Address: 0x801D04E8
  * @note Size: 0xF8
  */
-ActBreakGate::ActBreakGate(Game::Piki* parent)
+ActBreakGate::ActBreakGate(Game::Piki* parent) // us
     : Action(parent)
 {
 	mStickAttack = new ActStickAttack(parent);

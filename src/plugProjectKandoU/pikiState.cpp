@@ -170,7 +170,7 @@ void PikiDemoWaitState::cleanup(Piki* piki) { }
 void PikiCarrotState::init(Piki* piki, StateArg* stateArg)
 {
 	piki->startMotion(IPikiAnims::WAIT, IPikiAnims::WAIT, nullptr, nullptr);
-	piki->_180 = 0.3f;
+	//piki->_180 = 0.3f;
 	piki->setMoveVelocity(false);
 	piki->setMoveRotation(false);
 	piki->setCollisionFlick(true);
@@ -213,7 +213,8 @@ void PikiCarrotState::exec(Piki* piki)
 	if (length > 0.0f) { // regswaps here
 		pos.negate();
 		Matrixf natMatrix;
-		natMatrix.makeNaturalPosture(pos);
+		//BROCOLI AMONGUS... fix this later
+		//natMatrix.makeNaturalPosture(pos);
 		Matrixf matST;
 		matST.makeST(piki->mScale, Vector3f::zero);
 		Matrixf concatMtx;
@@ -1505,7 +1506,11 @@ void PikiPanicState::init(Piki* piki, StateArg* stateArg)
 	_21        = true;
 	piki->setMoveRotation(true);
 	mDeathTimer = piki->getParms()->mPikiParms.mPanicMaxTime.mValue;
+	if (piki->lastKnownNavi && piki->lastKnownNavi->naviPowers->isPower(HAZARD_HELP)) {
+		mDeathTimer *= 2;
+	}
 	mDeathTimer *= (0.1f * randFloat() + 1.0f);
+
 	mDramaTimer = 0.1f;
 	mAngle      = piki->mFaceDir;
 	mSpeed      = 1.0f;
@@ -2497,7 +2502,7 @@ void PikiHipDropState::exec(Piki* piki)
 		piki->mSimVelocity.y = 0.0f;
 		_10 -= sys->mDeltaTime;
 		if (_10 <= 0.0f) {
-			piki->mSimVelocity.y   = -_aiConstants->mGravity.mData * 0.5f;
+			piki->mSimVelocity.y   = -_aiConstants->mGravity.mData * 0.5f; //ss
 			Creature* closestEnemy = nullptr;
 			f32 minDist            = 12800.0f;
 			Vector3f position      = piki->getPosition();
@@ -2531,10 +2536,10 @@ void PikiHipDropState::exec(Piki* piki)
 				if (dist > 0.0f) {
 					f32 norm = (1.0f / dist);
 					norm     = 120.0f * norm;
-					enemyPos.x *= norm;
-					enemyPos.z *= norm;
-					piki->mSimVelocity.x = enemyPos.x;
-					piki->mSimVelocity.z = enemyPos.z;
+					//enemyPos.x *= norm;
+					//enemyPos.z *= norm;
+					piki->mSimVelocity.x = (enemyPos.x - position.x) * norm;
+					piki->mSimVelocity.z = (enemyPos.z - position.z) * norm;
 				}
 			}
 			_14 = 1;

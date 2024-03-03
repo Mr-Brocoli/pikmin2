@@ -1,0 +1,4 @@
+build/pikmin2.usa/src/Dolphin/base/PPCArch.o: src/Dolphin/base/PPCArch.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/Dolphin/PPCArch.h 

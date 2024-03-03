@@ -1,0 +1,7 @@
+build/pikmin2.usa/src/Dolphin/MSL_C/MSL_Common_Embedded/Math/Double_precision/e_rem_pio2.o: src/Dolphin/MSL_C/MSL_Common_Embedded/Math/Double_precision/e_rem_pio2.c \
+	include/stl/fdlibm.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/stl/math.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/math_api.h \
+	include/stl/fdlibm.h 

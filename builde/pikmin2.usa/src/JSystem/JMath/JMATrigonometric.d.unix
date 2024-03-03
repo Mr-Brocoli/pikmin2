@@ -1,0 +1,11 @@
+build/pikmin2.usa/src/JSystem/JMath/JMATrigonometric.o: src/JSystem/JMath/JMATrigonometric.cpp \
+	include/stl/math.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/PowerPC_EABI_Support/MSL_C/MSL_Common/math_api.h \
+	include/stl/fdlibm.h \
+	include/JSystem/JMath.h \
+	include/JSystem/JMath/Inline.h \
+	include/Dolphin/mtx.h \
+	include/Dolphin/vec.h \
+	include/stl/utility.h 

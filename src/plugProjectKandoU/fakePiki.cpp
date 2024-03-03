@@ -74,7 +74,7 @@ void FakePiki::initFakePiki()
 
 	mFakePikiFlags.clear();
 	initCaptureStomach();
-	_180       = 0.0f;
+	mDeathTimer       = -20.0f;
 	mRoomIndex = -1;
 	_184       = 0;
 }
@@ -1471,6 +1471,7 @@ void FakePiki::move(f32 rate)
 	vec = mSimVelocity + mAcceleration;
 
 	MoveInfo info(&sphere, &vec, 0.0f);
+	info.mInfoOrigin        = this;
 	mFakePikiBounceTriangle = nullptr;
 
 	if (useMapCollision()) {

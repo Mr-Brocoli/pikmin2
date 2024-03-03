@@ -1,0 +1,7 @@
+build/pikmin2.usa/src/JSystem/JAudio/JAS/JASPlayer_impl.o: src/JSystem/JAudio/JAS/JASPlayer_impl.cpp \
+	include/JSystem/JAudio/JAS/JASPlayer.h \
+	include/JSystem/JAudio/JAS/JASOscillator.h \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JAudio/JAS/JASDriver.h \
+	include/JSystem/JAudio/JAS/JASCallbackMgr.h 

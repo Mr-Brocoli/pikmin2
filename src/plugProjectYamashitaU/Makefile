@@ -8,7 +8,7 @@ YAMASHITA_FILES:=\
 	$(BUILD_DIR)/src/plugProjectYamashitaU/kochappy.o\
 	$(BUILD_DIR)/asm/plugProjectYamashitaU/kochappyState.o\
 	$(BUILD_DIR)/src/plugProjectYamashitaU/kochappyMgr.o\
-	$(BUILD_DIR)/asm/plugProjectYamashitaU/enemyAction.o\
+	$(BUILD_DIR)/src/plugProjectYamashitaU/enemyAction.o\
 	$(BUILD_DIR)/src/plugProjectYamashitaU/chappy.o\
 	$(BUILD_DIR)/asm/plugProjectYamashitaU/chappyState.o\
 	$(BUILD_DIR)/src/plugProjectYamashitaU/chappyAnimator.o\

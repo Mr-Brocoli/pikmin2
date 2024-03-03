@@ -1,0 +1,9 @@
+build/pikmin2.usa/src/JSystem/JAudio/dsp/dspproc.o: src/JSystem/JAudio/dsp/dspproc.c \
+	include/types.h \
+	include/BuildSettings.h \
+	include/JSystem/JAudio/DSP.h \
+	include/Dolphin/dsp.h \
+	include/Dolphin/OS/OSUtil.h \
+	include/Dolphin/OS/OSContext.h \
+	include/Dolphin/OS/OSInterrupt.h \
+	include/Dolphin/OS/OSException.h 
