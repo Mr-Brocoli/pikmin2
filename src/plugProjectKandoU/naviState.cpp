@@ -26,6 +26,8 @@
 #include "Screen/Game2DMgr.h"
 #include "utilityU.h"
 
+#include "Game/generalEnemyMgr.h"
+
 int unusedNaviStateArray[] = { 1, 2, 3, 0 }; // ?
 
 static const int unusedNaviStateArray2[] = { 0, 0, 0 };
@@ -516,7 +518,7 @@ void NaviWalkState::collisionCallback(Navi* navi, CollEvent& event)
 		}
 	}
 
-	bool cond = moviePlayer->mDemoState == 0 && gameSystem->isVersusMode() && collider->isTeki() && !collider->mCaptureMatrix
+	bool cond = moviePlayer->mDemoState == 0 && (gameSystem->isVersusMode() || navi->naviPowers->isPower(BOMB_CARRY)) && collider->isTeki() && !collider->mCaptureMatrix
 	         && collider->isAlive() && static_cast<EnemyBase*>(collider)->getEnemyTypeID() == EnemyTypeID::EnemyID_Bomb
 	         && navi->mController1;
 
@@ -1475,6 +1477,10 @@ void NaviFollowState::exec(Navi* navi)
 	} else {
 		newSpeed = naviMgr->mNaviParms->mNaviParms.mMoveSpeed();
 	}
+	newSpeed *= navi->naviPowers->speedAdjust();
+	newSpeed *= mTargetNavi->naviPowers->speedAdjustPikis();
+	if (!navi->naviPowers->isPower(W) && navi->inWater())
+		newSpeed = 50.0f;
 
 	if (oldSpeed < 30.0f) {
 		newSpeed = 0.0f;
@@ -3843,6 +3849,60 @@ void NaviNukuAdjustState::cleanup(Navi* navi)
  * @note Address: 0x80182BEC
  * @note Size: 0x5EC
  */
+
+
+void executeOrder66()
+{
+	Piki* buf[100];
+	int n = 0;
+
+	// Assuming CI_LOOP is a macro for a loop, and "pikiMgr" is an instance of some manager class
+	Iterator<Piki> iterator(pikiMgr);
+	CI_LOOP(iterator)
+	{
+		Piki* p = *iterator;
+		if (p->isAlive()) {
+			buf[n] = p; // Fixed the index to 'n'
+			n++;
+		}
+	}
+	if (n == 0)
+		return;
+
+	InteractKill kill(buf[0], nullptr);
+
+	for (int i = n - 1; i > (n / 2); i--) {
+		// Generate a random index between 0 and i (inclusive)
+		int j = rand() % (i + 1);
+
+		// Swap buf[i] and buf[j]
+		Piki* temp = buf[i];
+		buf[i]     = buf[j];
+		buf[j]     = temp;
+
+		// You might want to perform your killing logic here with the 'kill' object
+		// kill.interact(buf[i]);
+	}
+
+	//InteractBomb hipdrop(buf[0], 99999.9f, nullptr);
+	InteractBomb act(buf[0], 10000.0f, &Vector3f::zero);
+
+	// Now buf[0] to buf[(n/2)-1] will contain the objects to be "eliminated"
+	// You can iterate through them and perform the necessary actions
+	for (int i = 0; i < n / 2; i++) {
+		buf[i]->stimulate(kill);
+	}
+
+
+	GeneralMgrIterator<EnemyBase> it2(generalEnemyMgr);
+	CI_LOOP(it2)
+	{
+		EnemyBase* enemy = it2.getObject();
+		if(rand() %2) enemy->stimulate(act);
+	}
+
+}
+
 void NaviDopeState::init(Navi* navi, StateArg* stateArg)
 {
 	P2ASSERTLINE(3006, stateArg);
@@ -3860,6 +3920,22 @@ void NaviDopeState::init(Navi* navi, StateArg* stateArg)
 			pikis++;
 		}
 	}
+
+	if (mDopeType == SPRAY_TYPE_SPICY) {
+
+		if (pikis == 0 && navi->naviPowers->isPower(THANOS_SNAP)) {
+			executeOrder66();
+		}
+		//you gots to give mario a power here later
+		if (pikis == 0 && navi->naviPowers->isPower(MARIO_SPECIAL)) {
+			navi->naviPowers->setPower(TEAM_FAST);
+			navi->naviPowers->setPower(TEAM_STRONG);
+			navi->mScale = 1.6f;
+			navi->setLifeMax();
+			pikis = 1; // sussy but should work
+		}
+	}
+
 
 	if ((mDopeType == SPRAY_TYPE_BITTER || pikis > 0 || navi->naviPowers->isPower(GLOBAL_SPRAYS))
 		&& navi->hasDope(mDopeType)) {
@@ -5895,14 +5971,14 @@ void NaviThrowWaitState::exec(Navi* navi)
 	if (input & Controller::PRESS_DPAD_RIGHT || input & Controller::PRESS_Y) {
 		this->mCurrHappa = -1;
 		int type         = mHeldPiki->getKind();
-		int pikisNext[6];
-		for (int i = 0; i < 6; i++) {
-			pikisNext[i] = ((type + i + 1) % 7);
+		int pikisNext[(PikiColorCount - 1)];
+		for (int i = 0; i < (PikiColorCount-1); i++) {
+			pikisNext[i] = ((type + i + 1) % PikiColorCount);
 		}
 		//}
 
 		Piki* newPiki = nullptr;
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < (PikiColorCount - 1); i++) {
 			Piki* p = findNearestColorPiki(navi, pikisNext[i]);
 			if (p) {
 				newPiki = p;
@@ -5931,13 +6007,13 @@ void NaviThrowWaitState::exec(Navi* navi)
 	} else if (input & Controller::PRESS_DPAD_LEFT) {
 		mCurrHappa = -1;
 		int type   = mHeldPiki->getKind();
-		int pikisNext[6];
-		for (int i = 0; i < 6; i++) {
-			pikisNext[i] = ((type + (5-i) + 1) % 7);
+		int pikisNext[(PikiColorCount - 1)];
+		for (int i = 0; i < (PikiColorCount - 1); i++) {
+			pikisNext[i] = ((type + ((PikiColorCount - 2)-i) + 1) % PikiColorCount);
 		}
 
 		Piki* newPiki = nullptr;
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < (PikiColorCount - 1); i++) {
 			Piki* p = findNearestColorPiki(navi, pikisNext[i]);
 			if (p) {
 				newPiki = p;
@@ -6842,7 +6918,33 @@ Piki* NaviThrowWaitState::findNearestColorPiki(Navi* navi, int color)
  */
 void NaviThrowWaitState::sortPikis(Navi* navi)
 {
+
+	char buf[120];
+	int i = 0;
+	int bruh = mHeldPiki->mPikiKind;
+	Iterator<Piki> iter(pikiMgr);
+	CI_LOOP(iter)
+	{
+		Piki* piki = *iter;
+		buf[i]     = piki->getKind();
+		piki->mPikiKind %= 7;
+		if (buf[i] != bruh && piki->mPikiKind == (bruh % 7)) {
+			if (piki->mPikiKind == 0)
+				piki->mPikiKind = 1;
+			else
+				piki->mPikiKind = 0;
+		}
+		i++;
+	}
 	navi->mCPlateMgr->sortByColor(mHeldPiki, mCurrHappa);
+
+	i = 0;
+	CI_LOOP(iter)
+	{
+		Piki* piki = *iter;
+		piki->mPikiKind = buf[i];
+		i++;
+	}
 
 	Vector3f naviPos = navi->getPosition();
 

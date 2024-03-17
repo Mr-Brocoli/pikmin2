@@ -1057,7 +1057,6 @@ void Mgr::doSimpleDraw(Viewport* vp)
 		while (mat) {
 			mat->loadSharedDL();
 			mat->mShape->loadPreDrawSetting();
-
 			Iterator<Item> iter(this);
 			CI_LOOP(iter)
 			{

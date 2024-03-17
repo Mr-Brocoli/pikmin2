@@ -109,6 +109,7 @@ void CameraMgr::setCameraAngle(f32 angle, int id)
  */
 void CameraMgr::update()
 {
+	
 	if (isCameraUpdateOn()) {
 		if (mCurrPlayerMode == 2) {
 			for (int i = 0; i < 2; i++) {

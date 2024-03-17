@@ -281,6 +281,8 @@ void CPlate::sortByColor(Creature* piki, int happaType)
 					if (iKind == pikiCounts[k]) {
 						nextType = pikiCounts[k];
 						break;
+					} else {
+						//JUT_PANIC("amogus");
 					}
 				}
 			} else {
@@ -792,6 +794,11 @@ lbl_80196008:
 // void getSlotPosition__Q24Game6CPlateFiR10Vector3f()
 void CPlate::getSlotPosition(int p1, Vector3f& p2)
 {
+
+	if (p1 >= 0 && p1 >= this->mSlotCount) {
+		JUTException::panic_f("gameCPlate.cpp", 627, "invalid slot idx %d", p1);
+	}
+	p2 = _D8 + mSlots[p1]._00;
 	/*
 	stwu     r1, -0x20(r1)
 	mflr     r0
@@ -1001,8 +1008,47 @@ lbl_8019629C:
  * @note Address: 0x801962B0
  * @note Size: 0x2EC
  */
-void CPlate::refreshSlot(f32)
+void CPlate::refreshSlot(f32 sus)
 {
+	float sussy = -this->mBaseRadius;
+	Matrixf amogus;
+	Vector3f scale(1, 1, 1);
+	Vector3f rotation(1, 0, this->mAngle);
+	amogus.makeSR(scale, rotation);
+	float ohioBurger = this->mParms.mMaxPositionSize;
+	float potato;
+	if (this->_100 != 0)
+		potato = 0.5f;
+	else
+		potato = 1.0f;
+	float dog = potato * ohioBurger;
+	const Vector3f holdUp(1, 1, 1);
+	Vec chogus;
+	PSMTXMultVec(amogus.mMatrix.mtxView, (Vec*)&holdUp, &chogus);
+	this->_F4 = chogus.x;
+	this->_F8 = chogus.y;
+	this->_FC = chogus.z;
+
+	float lobotomy = 2.0f;
+	float mogger      = lobotomy * dog;
+	float godEater = 0.0f;
+	float childBeater = 0.1f;
+	float eggMeter    = 176.0f;
+	for (int i = 0; i < this->mActiveGroupSize; i++) {
+		float e = this->mBaseRadius;
+		float ghetoo   = this->mBaseRadius;
+		float ringDing = (ghetoo * ghetoo) - (sussy * sussy);
+		if (ringDing > 0) {
+			ringDing = (ghetoo * ghetoo) - (sussy * sussy); 
+		}
+
+		double trouble = this->_B4 * ghetoo / e;
+		const Vector3f holdUpAgain(1, 1, 1);
+		Vector3f chogus2;
+		PSMTXMultVec(amogus.mMatrix.mtxView, (Vec*)&holdUpAgain, (Vec*)&chogus2);
+		mSlots[i]._00 = chogus2;
+	}
+
 	/*
 	stwu     r1, -0x150(r1)
 	mflr     r0

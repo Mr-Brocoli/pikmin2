@@ -663,9 +663,29 @@ void VsGameSection::createFallPikmins(PikiContainer& setPikmin, int param_2)
 	Vector3f start;
 	mapMgr->getStartPosition(start, param_2);
 	setPikmin.dump("createFallPikmins");
+
+	float bdfsdfusdfusdf = 1.0f;
+	if (naviMgr->mNewCaptains->newCaptains[naviMgr->mNewCaptains->chosenCaptains[0]].powers.isPower(BIGGER_IS_BETTER)) {
+		bdfsdfusdfusdf -= 0.25f;
+		if (naviMgr->mNewCaptains->newCaptains[naviMgr->mNewCaptains->chosenCaptains[1]].powers.isPower(IMITATER_POWER))
+			bdfsdfusdfusdf -= 0.25f;
+	}
+	if (naviMgr->mNewCaptains->newCaptains[naviMgr->mNewCaptains->chosenCaptains[1]].powers.isPower(BIGGER_IS_BETTER)) {
+		bdfsdfusdfusdf -= 0.25f;
+		if (naviMgr->mNewCaptains->newCaptains[naviMgr->mNewCaptains->chosenCaptains[0]].powers.isPower(IMITATER_POWER))
+			bdfsdfusdfusdf -= 0.25f;
+	}
+
 	Navi* orima = naviMgr->getAt(NAVIID_Olimar);
 	start       = orima->getPosition();
-	start.y     = mapMgr->getMinY(start);
+	start *= bdfsdfusdfusdf;
+	orima->setPosition(start, true);
+	start.y                 = mapMgr->getMinY(start);
+	Navi* other = naviMgr->getAt(1);
+	Vector3f otherpos       = other->getPosition();
+	otherpos *= bdfsdfusdfusdf;
+	other->setPosition(otherpos, true);
+
 	for (int color = FirstPikmin; color < PikiColorCount; color++) {
 		for (int happa = Leaf; happa < PikiGrowthStageCount; happa++) {
 			for (int i = 0; i < setPikmin.getCount(color, happa); i++) {
@@ -685,6 +705,7 @@ void VsGameSection::createFallPikmins(PikiContainer& setPikmin, int param_2)
 					piki->setPosition(spawn, false);
 					piki->changeShape(color);
 					piki->changeHappa(happa);
+					piki->mHappaKind  = happa; // for orangep ikmin4
 					Vector3f velocity = Vector3f(0.0f, -(randFloat() * 150.0f + 2700.0f), 0.0f);
 					piki->setVelocity(velocity);
 					piki->movie_begin(false);

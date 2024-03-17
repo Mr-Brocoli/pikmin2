@@ -183,7 +183,13 @@ void PikiMgr::load(int modelFlag)
 	loadBmd(White, "piki_p2_white");
 	loadBmd(Purple, "piki_p2_black");
 	loadBmd(Bulbmin, "piki_kochappy");
-	loadBmd(Carrot, "piki_ninjin");
+	loadBmd(Carrot, "piki_p2_orange");
+	//loadBmd(Orange, "piki_p2_orange");
+	loadBmd(Ice, "piki_p2_ice");
+	loadBmd(RockP, "piki_p2_rock");
+	loadBmd(Wing, "piki_p2_wing");
+	loadBmd(Fearless, "piki_p2_fearless");
+	loadBmd(Invincible, "piki_p2_invincible");
 
 	mHappaModel[0] = J3DModelLoaderDataBase::load(arc->getResource("happa_model/leaf.bmd"), 0x20000000);
 	mHappaModel[1] = J3DModelLoaderDataBase::load(arc->getResource("happa_model/bud.bmd"), 0x240000);
@@ -247,6 +253,7 @@ SysShape::Model* PikiMgr::createLeafModel(int id, int num) { return nullptr; }
  */
 void PikiMgr::setMovieDraw(bool drawOn)
 {
+	return;
 	if (!drawOn) {
 		mFlags[1] |= 1;
 	} else {
@@ -474,8 +481,9 @@ void PikiMgr::debugShapeDL(char* text)
 void PikiMgr::doSimpleDraw(Viewport* vp)
 {
 	for (int i = 0; i < 5; i++) {
+		int bruh                = 0x10 << vp->mVpId;
 		J3DModelData& modelData = *mHappaModel[i];
-		J3DMaterial* mat        = modelData.mJointTree.mRootNode->mMaterial;
+		J3DMaterial* mat        = modelData.mJointTree.mJoints[0]->mMaterial;
 		j3dSys.mVtxPos          = modelData.getVertexData()->getVtxPosArray();
 		j3dSys.mVtxNorm         = modelData.getVertexData()->getVtxNrmArray();
 		j3dSys.mVtxColor        = modelData.getVertexData()->getVtxColorArray(0);
@@ -487,19 +495,19 @@ void PikiMgr::doSimpleDraw(Viewport* vp)
 				if (!mOpenIds[j]) {
 					Piki* piki = &mArray[j];
 					if (piki->mLod.mFlags & 4) {
-						if (!piki->doped() && piki->mLod.mFlags & 0x10) {
+						if (!piki->doped() && piki->mLod.mFlags & bruh) {
 							int id = piki->getHappa();
 							// make purple and white pikmin use the red flower/bud
-							if ((piki->getKind() == Purple || piki->getKind() == White) && id != 0) {
+							if ((piki->getKind() == White || piki->getKind() == Purple) && id >= 1) {
 								id += 2;
 							}
-							if (i == id) {
+							if (id == i) {
 								Matrixf* mtx  = piki->mLeafStemJoint->getWorldMatrix();
 								Matrixf* mtx2 = vp->getMatrix(1);
 								Mtx test;
-								PSMTXConcat(mtx->mMatrix.mtxView, mtx2->mMatrix.mtxView, test);
+								PSMTXConcat(mtx2->mMatrix.mtxView, mtx->mMatrix.mtxView, test);
 								GXLoadPosMtxImm(test, 0);
-								GXLoadPosMtxImm(test, 0);
+								GXLoadNrmMtxImm(test, 0);
 								mat->mShape->simpleDrawCache();
 							}
 						}
@@ -699,8 +707,8 @@ void PikiMgr::doEntry()
 		u8 flag = mFlags[1];
 		for (int i = 0; i < mMax; i++) {
 			if (!mOpenIds[i]) {
-				if (flag & 1 || mArray[i].isMovieActor()) {
-					mArray[i].mLod.mFlags &= ~0x30;
+				if ((flag & 1) && !mArray[i].isMovieActor()) {
+					mArray[i].mLod.mFlags &= ~0x34;
 				} else {
 					mArray[i].isMovieActor();
 				}
@@ -710,7 +718,7 @@ void PikiMgr::doEntry()
 				if (piki->getKind() == Blue && mFlags[0] & 1) {
 					piki->mLod.mFlags &= ~0x10;
 				} else if (piki->getKind() == Red && mFlags[0] & 2) {
-					piki->mLod.mFlags &= ~0x10;
+					piki->mLod.mFlags &= ~0x20;
 				}
 				mArray[i].doEntry();
 			}
@@ -719,8 +727,8 @@ void PikiMgr::doEntry()
 		u8 flag = mFlags[1];
 		for (int i = 0; i < mMax; i++) {
 			if (!mOpenIds[i]) {
-				if (flag & 1 || mArray[i].isMovieActor()) {
-					mArray[i].mLod.mFlags &= ~0x30;
+				if (flag & 1 && !mArray[i].isMovieActor()) {
+					mArray[i].mLod.mFlags &= ~0x34;
 				} else {
 					mArray[i].isMovieActor();
 				}
@@ -963,10 +971,14 @@ void PikiMgr::moveAllPikmins(Vector3f& pos, f32 range, Condition<Piki>* cond)
 		if (piki->mFlags.isSet(2) && (!cond || cond->satisfy(piki))) {
 			f32 angle = randFloat() * TAU;
 			f32 dist  = randFloat() * range;
-			f32 x     = cos(angle) * dist;
-			f32 y     = 0.0f;
-			f32 z     = sin(angle) * dist;
-			Vector3f setpos(pos.x + x, pos.y + y, pos.z + z);
+			Vector3f bruh(sin(angle) * dist, 0.0f, cos(angle) * dist);
+			Vector3f setpos(bruh.x, bruh.y, bruh.z);
+			//bruh.x *= dist;
+			//bruh.z *= dist;
+			//f32 x     = cos(angle) * dist;
+			//f32 y     = 0.0f;
+			//f32 z     = sin(angle) * dist;
+			setpos = pos + bruh;
 			if (mapMgr) {
 				setpos.y = mapMgr->getMinY(setpos);
 			}

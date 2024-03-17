@@ -3941,4 +3941,7 @@ namespace Game {
 // 	b        doAnimation__Q24Game7ItemMgrFv
 // 	*/
 // }
+
+ItemMgr* itemMgr = nullptr;
+
 } // namespace Game

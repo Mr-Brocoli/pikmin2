@@ -52,7 +52,14 @@ typedef enum EPikiKind {
 	AllPikmin = StoredPikiCount,
 	Bulbmin   = 5,
 	Carrot    = 6,
+	//Orange = 6,
+	Ice		  = 7,
+	RockP	  = 8,
+	Wing  = 9,
+	Fearless  = 10,
+	Invincible = 11,
 	PikiColorCount, // 7
+	OldPikiColorCount = 7, // for pelletMGR who doesn't care about new types
 } EPikiKind;
 
 typedef enum EPikiHappa {

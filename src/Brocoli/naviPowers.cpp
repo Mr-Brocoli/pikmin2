@@ -7,9 +7,18 @@ NaviPowers::NaviPowers()
 }
 
 
-void NaviPowers::setPower(NaviPowerID power) { powers.set(1ULL << power); }
+void NaviPowers::setPower(NaviPowerID power) { 
+	int bruh = power / 64;
+	int gruh = power % 64;
+	powers.mFlags[bruh].set(1ULL << gruh);
+}
 
-bool NaviPowers::isPower(NaviPowerID power) { return powers.isSet(1ULL << power); }
+bool NaviPowers::isPower(NaviPowerID power)
+{
+	int bruh = power / 64;
+	int gruh = power % 64;
+	return powers.mFlags[bruh].isSet(1ULL << gruh);
+}
 
 
 //It's not shown here but in the makeVelocity code if you're in water and don't 

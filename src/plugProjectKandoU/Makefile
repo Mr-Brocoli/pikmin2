@@ -1,4 +1,5 @@
 KANDO_FILES:=\
+	$(BUILD_DIR)/src/Brocoli/itemPikihead_sus.o\
 	$(BUILD_DIR)/src/Brocoli/naviPowers.o\
 	$(BUILD_DIR)/src/Brocoli/newCaptains.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/pikiAnimator.o\
@@ -12,7 +13,7 @@ KANDO_FILES:=\
 	$(BUILD_DIR)/asm/plugProjectKandoU/singleGameSection.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/cellPyramid.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/naviMgr.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/pikiMgr.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/pikiMgr.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/mapMgr.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/baseHIOSection.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/naviWhistle.o\
@@ -35,7 +36,7 @@ KANDO_FILES:=\
 	$(BUILD_DIR)/src/plugProjectKandoU/aiTransport.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/aiEnter.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/pathfinder.o\
-	$(BUILD_DIR)/asm/plugProjectKandoU/pelletState.o\
+	$(BUILD_DIR)/src/plugProjectKandoU/pelletState.o\
 	$(BUILD_DIR)/asm/plugProjectKandoU/dynCreature.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/gameGenerator.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/genPiki.o\
@@ -136,6 +137,7 @@ KANDO_FILES:=\
 	$(BUILD_DIR)/src/plugProjectKandoU/vsCoinOtakaraName.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/pelletBirthBuffer.o\
 	$(BUILD_DIR)/src/plugProjectKandoU/vsFifo.o\
+	$(BUILD_DIR)/src/Brocoli/gameMapParts_sus.o\
 
 DEPENDS += $(KANDO_FILES:.o=.d)
 

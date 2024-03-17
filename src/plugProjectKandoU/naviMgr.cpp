@@ -250,7 +250,7 @@ void NaviMgr::loadResources_float()
 		char susbruh[100];
 		char* toSprint = "/brocoli/captains/%s.bmd";
 		bool imitater  = false;
-		if (mNewCaptains->slotIsPower(mNewCaptains->chosenCaptains[i], IMITATER_POWER)) {
+		if (mNewCaptains->newCaptains[mNewCaptains->chosenCaptains[i]].powers.isPower(IMITATER_POWER)) {
 			imitater = true;
 			sprintf(susbruh, "/brocoli/fake_captains/%s.bmd", mNewCaptains->newCaptains[mNewCaptains->chosenCaptains[i^1]].name);
 		} else {

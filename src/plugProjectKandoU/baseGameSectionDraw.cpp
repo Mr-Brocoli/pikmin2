@@ -14,6 +14,8 @@
 #include "Light.h"
 #include "nans.h"
 
+#include "Game/Navi.h"
+
 const char* message = "drct-post";
 
 namespace Game {
@@ -24,6 +26,10 @@ namespace Game {
  */
 void BaseGameSection::newdraw_draw3D_all(Graphics& gfx)
 {
+	
+	bool naviOneJoeMama       = naviMgr && naviMgr->getAt(0)->naviPowers->isPower(UPSIDE_DOWN);
+	bool naviTwoJoeMama = naviMgr && naviMgr->getAt(1)->naviPowers->isPower(UPSIDE_DOWN);
+
 	// Setup viewport callback to be newdraw_drawAll
 	Delegate1<BaseGameSection, Viewport*> vpDelegate(this, &BaseGameSection::newdraw_drawAll);
 	gfx.mapViewport(&vpDelegate);
@@ -38,12 +44,15 @@ void BaseGameSection::newdraw_draw3D_all(Graphics& gfx)
 
 	// Draw particles for both viewports
 	sys->mTimers->_start("part-draw", true);
+	cmtxPerspectiveFunnyFloat = naviOneJoeMama ? -0.5f : 0.5f;
 	drawParticle(gfx, 0);
+	cmtxPerspectiveFunnyFloat = naviTwoJoeMama ? -0.5f : 0.5f;
 	drawParticle(gfx, 1);
 	sys->mTimers->_stop("part-draw");
 
 	// Draw counters for both viewports
 	// (Life gauge & Carry info)
+	cmtxPerspectiveFunnyFloat = naviOneJoeMama ? -0.5f : 0.5f;
 	sys->mTimers->_start("drct-post", true);
 	mLightMgr->set(gfx);
 	Viewport* vp = gfx.getViewport(0);
@@ -52,6 +61,7 @@ void BaseGameSection::newdraw_draw3D_all(Graphics& gfx)
 		directDrawPost(gfx, vp);
 	}
 
+	cmtxPerspectiveFunnyFloat = naviTwoJoeMama ? -0.5f : 0.5f;
 	mLightMgr->set(gfx);
 	vp = gfx.getViewport(1);
 	if (vp && vp->viewable()) {
@@ -59,6 +69,8 @@ void BaseGameSection::newdraw_draw3D_all(Graphics& gfx)
 		directDrawPost(gfx, vp);
 	}
 	sys->mTimers->_stop("drct-post");
+
+	cmtxPerspectiveFunnyFloat = 0.5f;
 }
 
 /**
@@ -69,6 +81,8 @@ void BaseGameSection::newdraw_drawAll(Viewport* vp)
 {
 	sys->mTimers->_start("draw_calc", true);
 	Graphics& gfx = *sys->mGfx;
+
+	cmtxPerspectiveFunnyFloat = naviMgr->getAt(vp->mVpId)->naviPowers->isPower(UPSIDE_DOWN) ? -0.5f : 0.5f;
 
 	doSetView(vp->mVpId);
 	vp->setJ3DViewMtx(true)->setViewCalcModeImm();

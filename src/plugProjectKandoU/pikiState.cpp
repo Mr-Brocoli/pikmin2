@@ -2484,6 +2484,8 @@ void PikiHipDropState::init(Piki* piki, StateArg* stateArg)
 	piki->mSimVelocity.x = 0.0f;
 	_14                  = 0;
 	_10                  = 0.25f;
+	if (piki->getKind() == Wing)
+		_10 = 0.0f;
 	piki->mSimVelocity.y = 0.0f;
 
 	efx::TPkEffect* effectsObj = piki->mEffectsObj;
@@ -2492,23 +2494,42 @@ void PikiHipDropState::init(Piki* piki, StateArg* stateArg)
 	piki->mUpdateContext._09 = true;
 }
 
+inline f32 pikmin2_normalise(Vector3f& vec)
+{
+	f32 length = pikmin2_sqrtf(vec.magnitude());
+	if (length > 0) {
+		f32 norm = 1.0f / length;
+		vec *= norm;
+	} else {
+		length = 0.0f;
+	}
+
+	return length;
+}
+
 /**
  * @note Address: 0x8018DB88
  * @note Size: 0x3C8
  */
 void PikiHipDropState::exec(Piki* piki)
 {
-	if (_14 == 0) {
+	if (_14 == 0 || _14 == 1) {
 		piki->mSimVelocity.y = 0.0f;
 		_10 -= sys->mDeltaTime;
 		if (_10 <= 0.0f) {
-			piki->mSimVelocity.y   = -_aiConstants->mGravity.mData * 0.5f; //ss
+			piki->mFaceDir += sys->mDeltaTime * PI / 0.2f;
+			piki->mFaceDir         = roundAng(piki->mFaceDir);
+			piki->mSimVelocity.y = -_aiConstants->mGravity.mData * 0.5f; //ss
 			Creature* closestEnemy = nullptr;
 			f32 minDist            = 12800.0f;
 			Vector3f position      = piki->getPosition();
-			Sys::Sphere sphere(position, 50.0f);
+			float bruh             = 50.0f;
+			if (piki->getKind() == Wing)
+				bruh *= 5.0f;
+			Sys::Sphere sphere(position, bruh);
 			CellIteratorArg iterArg(sphere);
 			iterArg.mUseCustomRadius = 1;
+			iterArg.mSphere.mPosition.y += 30.0f;
 			CellIterator iterator(iterArg);
 			iterator.first();
 
@@ -2532,8 +2553,81 @@ void PikiHipDropState::exec(Piki* piki)
 			if (closestEnemy) {
 				Vector3f enemyPos = closestEnemy->getPosition();
 				f32 dist          = _distanceXZ(enemyPos, position);
+				if (piki->getKind() == Wing) {
+					//enemyPos.y += 50.0f;
+					f32 throwHeight = 72.5f;
+					if (enemyPos.y > position.y)
+						throwHeight = 107.0f;
 
-				if (dist > 0.0f) {
+					//piki->mSoundObj->startSound(PSSE_PL_THROW, 0);
+					if (false && rand() % 5) {
+						Vector3f startPos = piki->getPosition();
+						f32 cosTheta      = (f32)cos(piki->mFaceDir);
+						f32 sinTheta      = (f32)sin(piki->mFaceDir);
+						startPos          = startPos + Vector3f(-15.0f * sinTheta, 0.0f, -15.0f * cosTheta);
+						startPos.y += 10.0f;
+						piki->setPosition(startPos, false);
+						Vector3f pikiPos   = piki->getPosition();
+						Vector2f sepXZ     = Vector2f(enemyPos.x - pikiPos.x, enemyPos.z - pikiPos.z);
+						f32 dist2D         = pikmin2_sqrtf(sepXZ.x * sepXZ.x + sepXZ.y * sepXZ.y);
+						f32 angDist        = pikmin2_atan2f(sepXZ.x, sepXZ.y);
+						piki->mFaceDir     = roundAng(angDist);
+						f32 timeToPeak     = 0.5f * naviMgr->mNaviParms->mNaviParms.mLandingTime.mValue;
+						int pikiColor      = piki->mPikiKind;
+						f32 ySpeed         = timeToPeak * (0.5f * _aiConstants->mGravity.mData) + (throwHeight / timeToPeak);
+						f32 newTimeToPeak  = ySpeed / _aiConstants->mGravity.mData;
+						f32 xSpeed         = dist2D / (2.0f * newTimeToPeak);
+						piki->mSimVelocity = Vector3f(xSpeed * pikmin2_sinf(angDist), ySpeed, xSpeed * pikmin2_cosf(angDist));
+						Vector3f momentum;
+						getScaledXZVec(momentum, 0, 0, 1.0f);
+						momentum.y    = 0.0f;
+						f32 magnitude = pikmin2_normalise(momentum);
+						piki->mSimVelocity += momentum * magnitude;
+						piki->mVelocity = piki->mSimVelocity;
+					} else {
+
+						CollPart* parts[256];
+						int n   = 256;
+						int sus = 0;
+						closestEnemy->mCollTree->mPart->getAllCollPartToArray(parts, n, sus);
+						CollPart* closestStickable = nullptr;
+						f32 closestDistance        = 12800.0f;
+
+						for (int i = 0; i != sus; i++) {
+							if (parts[i]->isStickable() && parts[i]->isPrim()) {
+								// Assuming mPosition is a Vector3f, adjust it based on your actual implementation
+								Vector3f partPosition = parts[i]->mPosition;
+
+								// Calculate the distance between the target position and the current CollPart's position
+								f32 distance = _distanceBetween(position, partPosition);
+
+								// Check if the current CollPart is closer than the previously closest one
+								if (distance < closestDistance) {
+									closestDistance  = distance;
+									closestStickable = parts[i];
+								}
+							}
+						}
+						if (closestStickable) {
+							Vector3f dogma;
+							dogma = closestStickable->mPosition;
+
+							f32 norm             = (1.0f / _distanceBetween(dogma, position));
+							norm                 = 300.0f * norm;
+							piki->mSimVelocity.x = (dogma.x - position.x) * norm;
+							piki->mSimVelocity.y = (dogma.y - position.y) * norm;
+							piki->mSimVelocity.z = (dogma.z - position.z) * norm;
+							piki->mVelocity      = piki->mSimVelocity;
+
+							piki->setUpdateTrMatrix(false);
+							Vector3f rotation(0, piki->mFaceDir, -0.0f);
+							piki->mBaseTrMatrix.makeSRT(piki->mScale, rotation, piki->mPosition);
+
+
+						}
+					}
+				}
+				else if (dist > 0.0f) {
 					f32 norm = (1.0f / dist);
 					norm     = 120.0f * norm;
 					//enemyPos.x *= norm;
@@ -2551,6 +2645,7 @@ void PikiHipDropState::exec(Piki* piki)
 		piki->mFaceDir = roundAng(piki->mFaceDir);
 
 	} else if (_14 == 2) {
+		piki->mSimVelocity.y += (_aiConstants->mGravity.mData * sys->mDeltaTime);
 		piki->mVelocity = Vector3f(0.0f);
 		_10 -= sys->mDeltaTime;
 		if (_10 <= 0.0f) {
@@ -2836,6 +2931,7 @@ void PikiHipDropState::cleanup(Piki* piki)
 {
 	piki->mEffectsObj->killBlackDown_();
 	piki->mUpdateContext._09 = false;
+	piki->setUpdateTrMatrix(true);
 }
 
 /**
@@ -2862,31 +2958,38 @@ void PikiHipDropState::bounceCallback(Piki* piki, Sys::Triangle* triangle)
 void PikiHipDropState::collisionCallback(Piki* piki, CollEvent& collEvent)
 {
 	if (!collEvent.mCollidingCreature->isPiki()) {
-		Vector3f position = piki->getPosition();
-		efx::createSimpleBlackDrop(position);
-		rumbleMgr->startRumble(11, position, 2);
-		cameraMgr->startVibration(6, position, 2);
+		if (piki->getKind() != Wing) {
+			Vector3f position = piki->getPosition();
+			efx::createSimpleBlackDrop(position);
+			rumbleMgr->startRumble(11, position, 2);
+			cameraMgr->startVibration(6, position, 2);
 
-		if (!collEvent.mCollidingCreature->isTeki()) {
-			piki->startSound(PSSE_PK_SE_DOSUN, false);
+			if (!collEvent.mCollidingCreature->isTeki()) {
+				piki->startSound(PSSE_PK_SE_DOSUN, false);
+			}
 		}
 
 		if (collEvent.mCollidingCreature->isTeki()) {
+
 			InteractHipdrop hipdrop(piki, piki->getParms()->mPikiParms.mPoundDamage.mValue, collEvent.mCollisionObj);
-			bool check        = false;
-			Vector3f velocity = piki->getVelocity();
-			if (velocity.y < 0.0f) {
-				check = collEvent.mCollidingCreature->stimulate(hipdrop);
-				earthquake(piki);
+			if (piki->getKind() == Wing)
+				hipdrop.mDamage = 5.0f;
+			bool check = false;
+			if (piki->getKind() != Wing) {
+				Vector3f velocity = piki->getVelocity();
+				if (velocity.y < 0.0f) {
+					check = collEvent.mCollidingCreature->stimulate(hipdrop);
+					earthquake(piki);
+				}
+				piki->startSound(PSSE_PK_SE_DOSUN_HIT, false);
 			}
+				InteractPress press(piki, 10.0f, collEvent.mCollisionObj);
+				Vector3f velocity2 = piki->getVelocity();
+				if (velocity2.y < 0.0f) {
+					check = collEvent.mCollidingCreature->stimulate(press);
+				}
+			
 
-			InteractPress press(piki, 10.0f, collEvent.mCollisionObj);
-			Vector3f velocity2 = piki->getVelocity();
-			if (velocity2.y < 0.0f) {
-				check = collEvent.mCollidingCreature->stimulate(press);
-			}
-
-			piki->startSound(PSSE_PK_SE_DOSUN_HIT, false);
 			if (!check && collEvent.mCollisionObj != nullptr && collEvent.mCollisionObj->isStickable()
 			    && collEvent.mCollidingCreature->isLivingThing()) {
 				piki->startStick(collEvent.mCollidingCreature, collEvent.mCollisionObj);
@@ -3116,13 +3219,15 @@ void PikiHipDropState::platCallback(Piki* piki, Game::PlatEvent&)
  */
 void PikiHipDropState::dosin(Piki* piki)
 {
+	_14 = 2;
+	_10 = 0.3f;
+	if (piki->getKind() == Wing)
+		return;
 	Vector3f position = piki->getPosition();
 	efx::createSimpleBlackDrop(position);
 	rumbleMgr->startRumble(11, position, 2);
 	cameraMgr->startVibration(6, position, 2);
 	piki->startSound(PSSE_PK_SE_DOSUN, false);
-	_14 = 2;
-	_10 = 0.3f;
 	earthquake(piki);
 }
 
@@ -3947,6 +4052,12 @@ void PikiFlyingState::exec(Piki* piki)
 		return;
 	}
 
+	if (piki->getKind() == Wing && piki->mSimVelocity.y <= -30.0f) {
+		transit(piki, PIKISTATE_HipDrop, nullptr);
+		return;
+	}
+
+
 	f32 gravityFactor = 0.8f * _aiConstants->mGravity.mData; // f30
 	f32 flowerFallFactor
 	    = _aiConstants->mGravity.mData * static_cast<PikiParms*>(piki->mParms)->mPikiParms.mFlowerPikiGravity.mValue; // f29
@@ -4401,6 +4512,7 @@ void PikiFlickState::cleanup(Piki* piki)
 	}
 }
 
+
 /**
  * @note Address: 0x8019007C
  * @note Size: 0x1A4
@@ -4415,6 +4527,11 @@ void PikiBlowState::init(Piki* piki, StateArg* stateArg)
 		mChanceToLeaf  = blowArg->mChanceToLeaf;
 		mIsLethal      = blowArg->mIsLethal;
 		_2A            = blowArg->_12;
+		if (piki->getKind() == Carrot) {
+			//mChanceToLeaf = 0.0f;
+			mIsLethal = false;
+			//_2A           = 0;
+		}
 		mHeldNavi      = blowArg->mHeldNavi;
 	}
 

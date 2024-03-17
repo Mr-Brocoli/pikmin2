@@ -5,6 +5,8 @@
 #include "efx/TEnemyDownSmoke.h"
 #include "efx/TEnemyDownWat.h"
 
+#include "Game/Navi.h"
+
 namespace Game {
 namespace ChappyBase {
 

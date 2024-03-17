@@ -8,7 +8,38 @@
 
 #include "Dolphin/rand.h"
 
+#include "Game/EnemyBase.h"
+#include "Game/EnemyStateMachine.h"
+
 namespace Game {
+
+
+bool parryCheck(Navi* navi, Creature* mCreature)
+{
+	if (navi->naviPowers->isPower(PUNCH_PARRY)) {
+		if (navi->mAnimator.mSelfAnimator.mAnimInfo) {
+			if (navi->mAnimator.mSelfAnimator.mAnimInfo->mId == IPikiAnims::PUNCH) {
+				if (mCreature->isTeki()) {
+					if (navi->mInvincibleTimer != 0)
+						return true;
+					EnemyBase* teki = (EnemyBase*)mCreature;
+					teki->mHealth -= 50.0f;
+					navi->mInvincibleTimer = 40;
+					if (!teki->isEvent(0, EB_BitterQueued) && !teki->isEvent(0, EB_NoInterrupt)) {
+						EarthquakeStateArg eqArg;
+						eqArg.mBounceFactor = 0;
+						teki->mLifecycleFSM->transit(teki, EnemyBaseFSM::EBS_Earthquake, &eqArg);
+						teki->mStunAnimTimer = 0.01f; // weird but works
+						navi->mSoundObj->startSound(PSSE_PK_SE_HIT_STONE, 0);
+						return true;
+					}
+					// teki->mLifecycleFSM->transit(teki, EnemyBaseFSM::EBS_Fit, nullptr);
+				}
+			}
+		}
+	}
+	return false;
+}
 
 /**
  * @note Address: 0x801D7E64
@@ -29,6 +60,10 @@ bool Navi::stimulate(Game::Interaction& interaction)
  */
 bool InteractSarai::actNavi(Game::Navi* navi)
 {
+
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (!gameSystem || gameSystem->isFlag(GAMESYS_IsGameWorldActive)) {
 		if (!navi->isStickTo()) {
 			navi->startStick(mCreature, mCollPart);
@@ -45,6 +80,10 @@ bool InteractSarai::actNavi(Game::Navi* navi)
  */
 bool InteractBomb::actNavi(Game::Navi* navi)
 {
+
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if ((gameSystem->isFlag(GAMESYS_IsGameWorldActive)) == FALSE || navi->naviPowers->isPower(B)) {
 		return false;
 	}
@@ -60,6 +99,9 @@ bool InteractBomb::actNavi(Game::Navi* navi)
  */
 bool InteractWind::actNavi(Game::Navi* navi)
 {
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	OlimarData* oData = navi->getOlimarData();
 	if (oData->hasItem(OlimarData::ODII_RepugnantAppendage) || navi->naviPowers->isPower(HEAVY)) {
 		return false;
@@ -85,6 +127,9 @@ bool InteractWind::actNavi(Game::Navi* navi)
  */
 bool InteractDenki::actNavi(Game::Navi* navi)
 {
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (!gameSystem || gameSystem->isFlag(GAMESYS_IsGameWorldActive)) {
 		if (!playData->mOlimarData->hasItem(OlimarData::ODII_DreamMaterial) && !navi->naviPowers->isPower(E)) {
 			NaviFlickArg flickArg(mCreature, mDirection, mDamage);
@@ -102,6 +147,9 @@ bool InteractDenki::actNavi(Game::Navi* navi)
  */
 bool InteractFallMeck::actNavi(Game::Navi* navi)
 {
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	NaviFallMeckArg fmArg(mDamage);
 	navi->transit(NSID_FallMeck, &fmArg);
 	return true;
@@ -113,6 +161,9 @@ bool InteractFallMeck::actNavi(Game::Navi* navi)
  */
 bool InteractFlick::actNavi(Game::Navi* navi)
 {
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (!gameSystem || gameSystem->isFlag(GAMESYS_IsGameWorldActive)) {
 		if (!playData->isDemoFlag(DEMO_Reunite_Captains)) {
 			return false;
@@ -141,6 +192,9 @@ bool InteractFlick::actNavi(Game::Navi* navi)
  */
 bool InteractPress::actNavi(Game::Navi* navi)
 {
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (!gameSystem || gameSystem->isFlag(GAMESYS_IsGameWorldActive)) {
 		bool alive = navi->isAlive();
 		if (!alive) {
@@ -170,6 +224,9 @@ bool InteractPress::actNavi(Game::Navi* navi)
  */
 bool InteractFire::actNavi(Game::Navi* navi)
 {
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (playData->mOlimarData[0].hasItem(OlimarData::ODII_ForgedCourage) || navi->naviPowers->isPower(F)) {
 		return false;
 	}
@@ -193,6 +250,9 @@ bool InteractFire::actNavi(Game::Navi* navi)
  */
 bool InteractBubble::actNavi(Game::Navi* navi)
 {
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (!gameSystem || gameSystem->isFlag(GAMESYS_IsGameWorldActive)) {
 		if (gameSystem && gameSystem->isVersusMode()) {
 			return false;
@@ -217,6 +277,9 @@ bool InteractBubble::actNavi(Game::Navi* navi)
  */
 bool InteractGas::actNavi(Game::Navi* navi) 
 { 
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (navi->naviPowers->isPower(P))
 		return false;
 	navi->startDamage(10); 
@@ -229,6 +292,9 @@ bool InteractGas::actNavi(Game::Navi* navi)
  */
 bool InteractBury::actNavi(Game::Navi* navi)
 {
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (navi->invincible()) {
 		return false;
 	}
@@ -244,6 +310,7 @@ bool InteractBury::actNavi(Game::Navi* navi)
  */
 bool InteractFue::actNavi(Game::Navi* navi)
 {
+
 	NaviState* naviState = navi->mCurrentState;
 
 	if (!navi->isAlive()) {
@@ -316,6 +383,10 @@ bool InteractKaisan::actNavi(Game::Navi* navi)
  */
 bool InteractAttack::actNavi(Game::Navi* navi)
 {
+
+	if (parryCheck(navi, mCreature))
+		return false;
+
 	if (!playData->isDemoFlag(DEMO_Reunite_Captains)) {
 		return false;
 	}

@@ -249,7 +249,8 @@ void TPkEffectMgr::createS_Dead(Vector3f& position, s32 pikiKind)
 	case Game::Carrot:
 		break;
 	default:
-		JUT_PANICLINE(232, "unknown color");
+		break;
+		//JUT_PANICLINE(232, "unknown color");
 	}
 }
 
@@ -399,7 +400,7 @@ void ToeKourin::create(Vector3f* chasePos, s32 pikiKind)
 		pkEffectMgr->mTOneEmitters.mToeKourinGreen->add(&mContext[0]);
 		break;
 	default:
-		JUT_PANICLINE(348, "illegal kourin color %d\n", pikiKind);
+		//JUT_PANICLINE(348, "illegal kourin color %d\n", pikiKind);
 		break;
 	case -1:
 		break;

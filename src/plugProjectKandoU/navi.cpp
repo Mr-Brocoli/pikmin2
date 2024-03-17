@@ -169,12 +169,13 @@ void Navi::onInit(Game::CreatureInitArg* arg)
 	_269             = 0;
 
 	int bruh = naviMgr->mNewCaptains->chosenCaptains[mNaviIndex];
-	if ((naviMgr->mNewCaptains->chosenCaptains[mNaviIndex] & (1ULL << IMITATER_POWER)) != 0)
+	if (naviMgr->mNewCaptains->newCaptains[bruh].powers.isPower(IMITATER_POWER))
 		bruh = naviMgr->mNewCaptains->chosenCaptains[mNaviIndex^1];
 
 	mScale = naviMgr->mNewCaptains->newCaptains[bruh].size;
-	naviPowers->powers.clear(); //idk
-	naviPowers->powers.set(naviMgr->mNewCaptains->newCaptains[bruh].powers);
+	naviPowers->powers.clear();
+	naviPowers->powers.mFlags[0] = naviMgr->mNewCaptains->newCaptains[bruh].powers.powers.mFlags[0];
+	naviPowers->powers.mFlags[1] = naviMgr->mNewCaptains->newCaptains[bruh].powers.powers.mFlags[1];
 
 	if (naviPowers->isPower(STELLAR_ORB)) {
 		getOlimarData()->getItem(OlimarData::ODII_StellarOrb);
@@ -194,6 +195,10 @@ void Navi::onInit(Game::CreatureInitArg* arg)
 		if (naviPowers->isPower(BONUS_BULBMIN)) {
 			VsGameSection* bruh = static_cast<VsGameSection*>(gameSystem->mSection);
 			bruh->mContainer1.mContainer[Bulbmin * 3] += 10;
+		}
+		if (true || naviPowers->isPower(MEEO_SPECIAL)) {
+			VsGameSection* bruh = static_cast<VsGameSection*>(gameSystem->mSection);
+			bruh->mContainer1.mContainer[Carrot * 3 + 2] += 10;
 		}
 	}
 
@@ -1950,6 +1955,7 @@ int Navi::getDownfloorMass()
  */
 void Navi::update()
 {
+
 	if (mInvincibleTimer) {
 		mInvincibleTimer--;
 	}
@@ -2915,6 +2921,11 @@ void Navi::makeVelocity()
 		ax = -mController1->getMainStickX();
 		az = mController1->getMainStickY();
 	}
+	if (naviPowers->isPower(UPSIDE_DOWN)) {
+		ax = -ax;
+		az = -az;
+	}
+
 	Vector3f inputPos(ax, 0.0f, az);
 
 	reviseController(inputPos);
@@ -2942,6 +2953,7 @@ void Navi::makeVelocity()
 	Vector3f result(side * x + obama * z);
 
 	if (naviPowers->isPower(LOBOTOMY_MOVEMENT) && x == 0 && z == 0) {
+		if((OSGetTick() & 0x4000000)) mFaceDir = randFloat() * 7;
 		result = Vector3f(cos(mFaceDir), 0.0f, sin(mFaceDir));
 	}
 
@@ -4392,6 +4404,17 @@ bool Navi::releasePikis(Piki* discriminator, bool dismissNotThisType)
 		return false;
 	}
 
+	if (naviPowers->isPower(RICKSLACKER_SPECIAL)) {
+		Vector3f remember = mWhistle->mPosition;
+		mWhistle->mPosition = getPosition();
+		mWhistle->mRadius = 300;
+		naviPowers->powers.mFlags[0].unset((1ULL << RICKSLACKER_SPECIAL));
+		callPikis();
+		naviPowers->setPower(RICKSLACKER_SPECIAL);
+		mWhistle->mPosition = remember;
+		return true;
+	}
+
 	bool dismissnavi = false;
 	Navi* loozy      = naviMgr->getAt(GET_OTHER_NAVI(this));
 	int id           = loozy->getStateID();
@@ -4459,13 +4482,13 @@ bool Navi::releasePikis(Piki* discriminator, bool dismissNotThisType)
 	}
 
 
-	int number[8];
-	Vector3f position[8];
-	for (int i = 0; i != 8; i++) {
+	int number[(PikiColorCount+1)];
+	Vector3f position[(PikiColorCount + 1)];
+	for (int i = 0; i != (PikiColorCount + 1); i++) {
 		position[i] = 0;
 		number[i] = 0;
 	}
-	for (int cColor = 0; cColor < 8; cColor++) {
+	for (int cColor = 0; cColor < (PikiColorCount + 1); cColor++) {
 		for (int i = 0; i < pikis; i++) {
 			if (cColor != Yellow) {
 				if (cColor == buffer[i]->getKind()) {
@@ -4479,8 +4502,8 @@ bool Navi::releasePikis(Piki* discriminator, bool dismissNotThisType)
 		}
 	}
 
-	f32 distList[8];
-	for (int cColor = 0; cColor < 8; cColor++) {
+	f32 distList[(PikiColorCount + 1)];
+	for (int cColor = 0; cColor < (PikiColorCount + 1); cColor++) {
 		if (number[cColor] > 0) {
 			f32 num  = number[cColor];
 			f32 mean = 1.0f / number[cColor];
@@ -4492,7 +4515,7 @@ bool Navi::releasePikis(Piki* discriminator, bool dismissNotThisType)
 
 	loozy = naviMgr->getAt(GET_OTHER_NAVI(this));
 	for (int i = 0; i < 4; i++) {
-		for (int cColor = 0; cColor < 8; cColor++) {
+		for (int cColor = 0; cColor < (PikiColorCount + 1); cColor++) {
 			if (number[cColor]> 0) {
 				Vector3f naviPos = getPosition();
 				Vector3f diff    = position[cColor] - naviPos;
@@ -4514,7 +4537,7 @@ bool Navi::releasePikis(Piki* discriminator, bool dismissNotThisType)
 				}
 			}
 
-			for (int j = cColor + 1; j < 8; j++) {
+			for (int j = cColor + 1; j < (PikiColorCount + 1); j++) {
 				if (number[cColor] > 0 && number[j] > 0) {
 					Vector3f diff = position[cColor] - position[j];
 					f32 dist      = diff.qNormalise();
@@ -6229,6 +6252,9 @@ inline f32 pikmin2_normalise(Vector3f& vec)
  */
 void Navi::throwPiki(Piki* piki, Vector3f& cursorPos)
 {
+
+	f32 throwHeight = piki->getThrowHeight();
+
 	// Play throw sound.
 	mSoundObj->startSound(PSSE_PL_THROW, 0);
 
@@ -6262,7 +6288,7 @@ void Navi::throwPiki(Piki* piki, Vector3f& cursorPos)
 	f32 timeToPeak = 0.5f * naviMgr->mNaviParms->mNaviParms.mLandingTime.mValue;
 
 	// "Actual" height at peak is navi elevation + 10.0f + throwHeight, but this is fine for our mechanics, mostly.
-	f32 throwHeight = piki->getThrowHeight();
+	//f32 throwHeight = piki->getThrowHeight();
 
 	int pikiColor = piki->mPikiKind;
 

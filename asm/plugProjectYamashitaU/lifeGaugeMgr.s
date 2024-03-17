@@ -1366,7 +1366,7 @@ lbl_constructor:
 /* 8011AE8C 00117DCC  4E 80 00 20 */	blr 
 .endfn update__12LifeGaugeMgrFv
 
-.fn draw__12LifeGaugeMgrFR8Graphics, global
+.fn draw__12LifeEGaugeMgrFR8Graphics, global
 /* 8011AE90 00117DD0  94 21 FF F0 */	stwu r1, -0x10(r1)
 /* 8011AE94 00117DD4  7C 08 02 A6 */	mflr r0
 /* 8011AE98 00117DD8  90 01 00 14 */	stw r0, 0x14(r1)
@@ -1403,7 +1403,7 @@ lbl_constructor:
 /* 8011AF04 00117E44  7C 08 03 A6 */	mtlr r0
 /* 8011AF08 00117E48  38 21 00 10 */	addi r1, r1, 0x10
 /* 8011AF0C 00117E4C  4E 80 00 20 */	blr 
-.endfn draw__12LifeGaugeMgrFR8Graphics
+.endfn draw__12LifeEGaugeMgrFR8Graphics
 
 .fn loadResource__12LifeGaugeMgrFv, global
 /* 8011AF10 00117E50  94 21 FF E0 */	stwu r1, -0x20(r1)

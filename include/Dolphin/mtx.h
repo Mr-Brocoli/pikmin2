@@ -19,6 +19,9 @@ typedef f32 Mtx44[4][4];
 typedef f32 (*MtxP)[4];
 typedef f32 PSQuaternion[4];
 
+// External float declaration
+extern float cmtxPerspectiveFunnyFloat;
+
 typedef struct Quaternion {
 	f32 x, y, z, w;
 } Quaternion;

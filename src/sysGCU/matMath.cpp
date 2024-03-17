@@ -765,7 +765,6 @@ void Matrixf::makeT(Vector3f& t)
  */
 void Matrixf::makeTR(Vector3f& t, Vector3f& r)
 {
-
 	f32 sx = sinf(r.x);
 	f32 sy = sinf(r.y);
 	f32 sz = sinf(r.z);

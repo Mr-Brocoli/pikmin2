@@ -24,12 +24,37 @@
 
 namespace Game {
 
-Color4 Piki::pikiColors[PikiColorCount + 1]
-    = { Color4(0, 50, 255, 255),    Color4(255, 30, 0, 255),  Color4(255, 210, 0, 255), Color4(28, 0, 52, 255),
-	    Color4(255, 230, 255, 255), Color4(255, 140, 0, 255), Color4(255, 255, 255, 0) };
-Color4 Piki::pikiColorsCursor[PikiColorCount + 1]
-    = { Color4(0, 50, 255, 255),    Color4(255, 30, 0, 255),  Color4(255, 210, 0, 255), Color4(120, 0, 250, 255),
-	    Color4(255, 230, 255, 255), Color4(255, 140, 0, 255), Color4(255, 255, 255, 0) };
+Color4 Piki::pikiColors[PikiColorCount + 1] = {
+	Color4(0, 50, 255, 255),    // Blue
+	Color4(255, 30, 0, 255),    // Red
+	Color4(255, 210, 0, 255),   // Orange/Yellow
+	Color4(28, 0, 52, 255),     // Dark Purple
+	Color4(255, 230, 255, 255), // Light Pink
+	Color4(255, 140, 0, 255),   // Orange
+	//Color4(255, 255, 255, 0),   // Fully Transparent White
+	Color4(255, 165, 0, 255),   // Orange
+	Color4(0, 255, 255, 255),   // Cyan
+	Color4(169, 169, 169, 255), // Dark Gray
+	Color4(255, 182, 193, 255), // Pink
+	Color4(165, 42, 42, 255),   // Brown
+	Color4(192, 192, 192, 255)  // Light Gray
+};
+
+Color4 Piki::pikiColorsCursor[PikiColorCount + 1] = {
+	Color4(0, 50, 255, 255),    // Blue
+	Color4(255, 30, 0, 255),    // Red
+	Color4(255, 210, 0, 255),   // Orange/Yellow
+	Color4(120, 0, 250, 255),   // Purple
+	Color4(255, 230, 255, 255), // Light Pink
+	Color4(255, 140, 0, 255),   // Orange
+	//Color4(255, 255, 255, 0),   // Fully Transparent White
+	Color4(255, 165, 0, 255),   // Orange
+	Color4(0, 255, 255, 255),   // Cyan
+	Color4(169, 169, 169, 255), // Dark Gray
+	Color4(255, 182, 193, 255), // Pink
+	Color4(165, 42, 42, 255),   // Brown
+	Color4(192, 192, 192, 255)  // Light Gray
+};
 
 static const int unusedPikiArray[] = { 0, 0, 0 };
 } // namespace Game
@@ -287,13 +312,21 @@ void Piki::update()
 		//sys->mTimers->_stop("pu-1");
 
 		if (isAlive() && mWaterBox) {
-
 			int stateID  = getStateID();
 			int pikiType = getKind();
-			if (stateID != PIKISTATE_WaterHanged && stateID != PIKISTATE_Drown && !mCurrentState->dead() && pikiType != Blue
-			    && pikiType != Bulbmin && moviePlayer->mDemoState == 0 && mSimVelocity.y <= 0.1f) {
 
-				if (lastKnownNavi && lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS)) {
+			if (getKind() == Ice) {
+				AABBWaterBox* wata = (AABBWaterBox*)mWaterBox;
+				if (wata->icePickleNum >= wata->icePickleMax) {
+					InteractBury bury(nullptr, 0.0f);
+					this->stimulate(bury);
+				}
+			}
+
+			if (stateID != PIKISTATE_WaterHanged && stateID != PIKISTATE_Drown && !mCurrentState->dead() && pikiType != Blue
+			    && pikiType != Bulbmin && pikiType != Ice && moviePlayer->mDemoState == 0 && mSimVelocity.y <= 0.1f) {
+
+				if (getKind() == Fearless || (lastKnownNavi && lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS))) {
 					efx::TPkEffect* effectsObjWater = mEffectsObj;
 					if (!effectsObjWater->isFlag(PKEFF_Water)) {
 						efx::TPkEffect* effectsObjWat = mEffectsObj;
@@ -507,10 +540,16 @@ void Piki::inWaterCallback(WaterBox* wbox)
 
 	int stateID  = getStateID();
 	int pikiType = getKind();
+
+	if (pikiType == Ice) {
+		wbox->incIcePiki();
+		return;
+	}
+
 	if (stateID != PIKISTATE_WaterHanged && stateID != PIKISTATE_Drown && !mCurrentState->dead() && pikiType != Blue
 	    && pikiType != Bulbmin) {
 		if (moviePlayer->mDemoState == 0 && mSimVelocity.y <= 0.1f) {
-			if (lastKnownNavi && lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS)) {
+			if (getKind() == Fearless || (lastKnownNavi && lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS))) {
 				efx::TPkEffect* effectsObjWater = mEffectsObj;
 				if (!effectsObjWater->isFlag(PKEFF_Water)) {
 					efx::TPkEffect* effectsObjWat = mEffectsObj;
@@ -631,6 +670,12 @@ lbl_80148CFC:
  */
 void Piki::outWaterCallback()
 {
+
+	if (getKind() == Ice) {
+		mWaterBox->decIcePiki();
+		return;
+	}
+
 	efx::TPkEffect* effectsObjWater = mEffectsObj;
 	effectsObjWater->killWater_();
 	if (effectsObjWater->isFlag(PKEFF_Water)) {
@@ -720,7 +765,7 @@ f32 Piki::getSpeed(f32 multiplier)
 
 	//amogus
 	if (!this->lastKnownNavi || !this->lastKnownNavi->naviPowers->isPower(COMBAT_HAPPA)) {
-		if (mHappaKind == Flower) {
+		if (mHappaKind == Flower || (getKind() == Carrot && mHappaKind == Bud)) {
 			baseSpeed = pikiMgr->mParms->mPikiParms.mFlowerRunSpeed.mValue;
 		} else if (mHappaKind == Bud) {
 			baseSpeed = pikiMgr->mParms->mPikiParms.mBudRunSpeed.mValue;
@@ -731,7 +776,7 @@ f32 Piki::getSpeed(f32 multiplier)
 	f32 drag     = scaleValue(1.0f, pikiMgr->mParms->mPikiParms.mWalkSpeed.mValue);
 	f32 speed    = multiplier * (baseSpeed - drag) + drag;
 
-	if (pikiType == White) {
+	if (pikiType == White || (pikiType == Carrot && mHappaKind == Flower)) {
 		speed *= pikiMgr->mParms->mPikiParms.mWhiteRunSpeedMultiplier.mValue;
 	} else if (pikiType == Purple) {
 		speed *= pikiMgr->mParms->mPikiParms.mPurpleRunSpeedMultiplier.mValue;
@@ -931,14 +976,25 @@ f32 Piki::getAttackDamage()
 	switch (getKind()) {
 	case Red:
 		damage = pikiMgr->mParms->mPikiParms.mRedAttackDamage.mValue;
+		break;
 	case Blue:
 		damage = pikiMgr->mParms->mPikiParms.mBlueAttackDamage.mValue;
+		break;
 	case Yellow:
 		damage = pikiMgr->mParms->mPikiParms.mYellowAttackDamage.mValue;
+		break;
 	case Purple:
 		damage = pikiMgr->mParms->mPikiParms.mPurpleAttackDamage.mValue;
+		break;
 	case White:
 		damage = pikiMgr->mParms->mPikiParms.mWhiteAttackDamage.mValue;
+		break;
+	case RockP:
+		damage = 20.0f; // hard coded *2 if thrown at enemy
+		break;
+	case Wing:
+		damage = 5.0f;
+		break;
 	default:
 		damage = pikiMgr->mParms->mPikiParms.mBlueAttackDamage.mValue;
 	}
@@ -994,12 +1050,18 @@ f32 Piki::getPelletCarryPower()
 	case Purple:
 		carryPower = pikiMgr->mParms->mPikiParms.mPurpleCarryPower.mValue;
 		break;
+	case Carrot:
+		if (getHappa() == Flower)
+			carryPower = pikiMgr->mParms->mPikiParms.mWhiteCarryPower.mValue;
+		else
+			carryPower = 1.0f;
+		break;
 	default:
 		carryPower = 1.0f;
 		break;
 	}
 
-	if (doped() || getHappa() == Flower) {
+	if (doped() || getHappa() == Flower || (getKind() == Carrot && getHappa() == Bud)) {
 		carryPower += pikiMgr->mParms->mPikiParms.mFlowerCarrySpeedBonus.mValue;
 	} else if (getHappa() == Bud) {
 		carryPower += pikiMgr->mParms->mPikiParms.mBudCarrySpeedBonus.mValue;
@@ -1435,6 +1497,12 @@ void Piki::changeShape(int color)
 	pikiMgr->setupPiki(this);
 
 	mScale = Vector3f(getBaseScale());
+	if (color == Invincible) {
+		if (!(rand() % 10)) {
+			mScale.x *= -1;
+		}
+	}
+
 	initColor();
 
 	if (color != Bulbmin || isPikmin()) {
@@ -1459,7 +1527,17 @@ void Piki::changeShape(int color)
  * @note Address: 0x8014A770
  * @note Size: 0x8
  */
-void Piki::changeHappa(int newHappa) { mHappaKind = newHappa; }
+void Piki::changeHappa(int newHappa)
+{
+	if (getKind() != Carrot || newHappa < mHappaKind) {
+		mHappaKind = newHappa;
+		return;
+	}
+	if (newHappa > mHappaKind) {
+		mHappaKind += 1;
+		return;
+	}
+}
 
 /**
  * @note Address: 0x8014A778

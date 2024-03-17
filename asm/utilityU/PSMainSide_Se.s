@@ -889,7 +889,7 @@
 .endfn __ct__Q23PSM14PikiHummingMgrFv
 
 .fn exec__Q23PSM14PikiHummingMgrFv, global
-/* 8046D9CC 0046A90C  94 21 FF C0 */	stwu r1, -0x40(r1)
+/* 8046D9CC 0046A90C  94 21 FF C0 */	blr /*stwu r1, -0x40(r1)*/
 /* 8046D9D0 0046A910  7C 08 02 A6 */	mflr r0
 /* 8046D9D4 0046A914  38 80 00 00 */	li r4, 0
 /* 8046D9D8 0046A918  3C A0 80 4B */	lis r5, "__vt__22Iterator<Q24Game4Navi>"@ha

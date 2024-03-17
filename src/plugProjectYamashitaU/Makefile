@@ -1,4 +1,5 @@
 YAMASHITA_FILES:=\
+	$(BUILD_DIR)/src/Brocoli/lifeGaugeMgr_sus.o\
 	$(BUILD_DIR)/src/plugProjectYamashitaU/enemyBase.o\
 	$(BUILD_DIR)/src/plugProjectYamashitaU/pelplant.o\
 	$(BUILD_DIR)/src/plugProjectYamashitaU/pelplantState.o\

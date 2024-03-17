@@ -132,7 +132,7 @@ void TitleState::dvdload()
 		char susbruh[100];
 		char* toSprint = "/brocoli/captains/%s.bmd";
 		bool imitater  = false;
-		if (mNewCaptains->slotIsPower(i, IMITATER_POWER)) {
+		if (mNewCaptains->newCaptains[i].powers.isPower(IMITATER_POWER)) {
 			imitater = true;	
 			toSprint = "/brocoli/fake_captains/%s.bmd";
 		}

@@ -9,6 +9,8 @@
 #include "types.h"
 #include "Vector3.h"
 
+#include "CarryInfo.h"
+
 struct Matrixf;
 
 namespace Sys {
@@ -48,6 +50,9 @@ struct WaterBox {
 	virtual void doDirectDraw(Graphics& gfx) { }                            // _3C (weak)
 	virtual void attachModel(J3DModelData*, Sys::MatTexAnimation*, f32) { } // _40 (weak)
 	virtual void calcMatrix() { }                                           // _44 (weak)
+	virtual bool isFrozen() { return false; }
+	virtual void incIcePiki() { }
+	virtual void decIcePiki() { }
 
 	inline void setFlag(u8 flag) { mFlags.typeView |= flag; }
 	inline void resetFlag(u8 flag) { mFlags.typeView &= ~flag; }
@@ -57,7 +62,7 @@ struct WaterBox {
 	BitFlag<u8> mFlags; // _04
 };
 
-struct AABBWaterBox : public WaterBox {
+struct AABBWaterBox : public WaterBox, public CarryInfoOwner {
 	AABBWaterBox();
 
 	enum StateID {
@@ -81,6 +86,10 @@ struct AABBWaterBox : public WaterBox {
 	virtual void doViewCalc();                                           // _34
 	virtual void attachModel(J3DModelData*, Sys::MatTexAnimation*, f32); // _40
 	virtual void calcMatrix();                                           // _44
+	virtual void getCarryInfoParam(CarryInfoParam&);                     // _230
+	virtual bool isFrozen();
+	virtual void incIcePiki();
+	virtual void decIcePiki();
 
 	void globalise(Game::AABBWaterBox*, Matrixf&);
 
@@ -104,6 +113,10 @@ struct AABBWaterBox : public WaterBox {
 	Sys::MatLoopAnimator mMatAnimator; // _54
 	J3DTexture* mFbTexture;            // _60
 	s16 mFbTexIndex;                   // _64
+	CarryInfoList* icePickleDisplay;
+	u32 icePickleNum;
+	u32 icePickleMax;
+	SysShape::Model* mFrozenModel; // _50
 };
 } // namespace Game
 

@@ -56,7 +56,10 @@ Navi* getNearestNavi(Creature* creature, f32 searchAngle, f32 searchRadius, f32*
 				EnemyBase* bruh = (EnemyBase*)creature;
 				if (currNavi->naviPowers->isPower(KING_OF_BUGS) && bruh->mHealth == bruh->mMaxHealth && !IS_ENEMY_BOSS(bruh->getEnemyTypeID()))
 					continue;
-
+				//NSID_Follow = 1
+				if (currNavi->getStateID() == 1 && naviMgr->getAt(GET_OTHER_NAVI(currNavi))->naviPowers->isPower(KING_OF_BUGS)) {
+					continue;
+				}
 
 
 				if (newDist < minDist) {

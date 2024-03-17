@@ -1,6 +1,8 @@
 #include "Dolphin/mtx.h"
 #include "math.h"
 
+float cmtxPerspectiveFunnyFloat = 0.5f;
+
 /**
  * @note Address: N/A
  * @note Size: 0x9C
@@ -34,7 +36,7 @@ void C_MTXFrustum(Mtx44 m, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32
  */
 void C_MTXPerspective(Mtx44 m, f32 fovY, f32 aspect, f32 n, f32 f)
 {
-	f32 angle = fovY * 0.5f;
+	f32 angle = fovY * cmtxPerspectiveFunnyFloat;
 	f32 cot;
 	f32 tmp;
 	angle   = MTXDegToRad(angle);

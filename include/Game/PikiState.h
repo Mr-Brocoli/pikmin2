@@ -569,6 +569,7 @@ struct PikiHipDropState : public PikiState {
 	virtual void collisionCallback(Piki*, CollEvent&);         // _28
 	virtual void platCallback(Piki*, PlatEvent&);              // _2C
 	virtual void onKeyEvent(Piki*, const SysShape::KeyEvent&); // _30
+	virtual bool callable() { return true; }                  // _44 (weak)
 
 	void dosin(Piki*);
 	void earthquake(Piki*);

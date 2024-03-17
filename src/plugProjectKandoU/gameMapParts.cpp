@@ -14,6 +14,9 @@
 #include "VsOtakaraName.h"
 #include "nans.h"
 
+	
+	#include "Brocoli/Funny.h"
+
 namespace Game {
 
 static const int unusedArray[] = { 0, 0, 0 };
@@ -5426,7 +5429,8 @@ void RoomMapMgr::makeOneRoom(f32 centreX, f32 centreY, f32 direction, char* unit
 	Matrixf mtx1;                                                   // 0x214
 	Vector3f translation(centreX * 170.0f, 0.0f, centreY * 170.0f); // 0xD0
 	Vector3f rotation1(0.0f, faceAngle, 0.0f);                      // 0xC4
-	mtx1.makeTR(translation, rotation1);
+	Vector3f scale = FUNNY::mapScaleX;
+	mtx1.makeTR(translation, scale);
 
 	MapUnit* unit = mMapUnitMgr->findMapUnit(unitName); // r22
 

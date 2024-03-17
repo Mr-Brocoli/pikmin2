@@ -891,13 +891,17 @@ void Pellet::onInit(CreatureInitArg* initArg)
 		mScale = Vector3f(0.01f);
 	}
 
-	mPikminCount[Blue]    = 0;
+	for (int i = 0; i != PikiColorCount; i++) {
+		mPikminCount[i] = 0;
+	}
+
+	/* mPikminCount[Blue] = 0;
 	mPikminCount[Red]     = 0;
 	mPikminCount[Yellow]  = 0;
 	mPikminCount[Purple]  = 0;
 	mPikminCount[White]   = 0;
 	mPikminCount[Bulbmin] = 0;
-	mPikminCount[Carrot]  = 0;
+	mPikminCount[Carrot]  = 0;*/
 	mTotalCarriers        = 0;
 	mPelletSizeType       = (u16) static_cast<PelletInitArg*>(initArg)->mPelletIndex;
 

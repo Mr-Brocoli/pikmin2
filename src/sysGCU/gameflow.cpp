@@ -135,7 +135,7 @@ ISection* GameFlow::createSection(JKRHeap* heap)
 		section = new Demo::Section(heap);
 		break;
 	case MainTitle:
-		section = new Title::Section(heap);
+		section =  new Game::VsGameSection(heap, false); // new Title::Section(heap);
 		break;
 	case SingleGame:
 		section = new Game::SingleGameSection(heap);

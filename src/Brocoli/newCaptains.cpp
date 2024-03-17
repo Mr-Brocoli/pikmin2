@@ -47,6 +47,7 @@ void NewCaptains::read(Stream& s) {
 		strcpy(newCaptains[i].name, sus);
 		newCaptains[i].size = s.readFloat();
 		newCaptains[i].slot = slot;
+		newCaptains[i].powers.powers.clear();
 		xorableTime         = false;
 
 		while (true) {
@@ -62,11 +63,11 @@ void NewCaptains::read(Stream& s) {
 				break;
 			}
 
-			long long x = (1ULL << GetNaviPowerIDValue(sus));
+			long long x = GetNaviPowerIDValue(sus);
 			if (xorableTime) {
-				newCaptains[i].xorablePowers |= x;
+				newCaptains[i].xorablePowers |= (1ULL << x);
 			} else {
-				newCaptains[i].powers |= x;
+				newCaptains[i].powers.setPower((NaviPowerID)x);
 			}
 
 		}

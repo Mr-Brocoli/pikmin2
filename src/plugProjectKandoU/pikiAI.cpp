@@ -257,7 +257,8 @@ int Piki::graspSituation_Fast(Game::Creature** outTarget)
 
 		case OBJTYPE_Teki: { // can we attack the enemy?
 			EnemyBase* enemy = static_cast<EnemyBase*>(creature);
-			if (enemy->isAlive() && !enemy->isFlying() && enemy->isLivingThing() && (waterCheck || (!waterCheck && !enemy->inWater()))) {
+			if (enemy->isAlive() && (getKind() == Wing || !enemy->isFlying()) && enemy->isLivingThing()
+			    && (waterCheck || (!waterCheck && !enemy->inWater()))) {
 				f32 sphereDist = enemy->calcSphereDistance(this);
 				Sys::Sphere enemySphere;
 				enemy->getBoundingSphere(enemySphere);
@@ -571,7 +572,7 @@ int Piki::graspSituation(Game::Creature** outTarget)
 	CI_LOOP(tekiIter)
 	{
 		EnemyBase* enemy = tekiIter.getObject();
-		if (enemy->isAlive() && !enemy->isFlying() && enemy->isLivingThing()) {
+		if (enemy->isAlive() && (getKind() == Wing || !enemy->isFlying()) && enemy->isLivingThing()) {
 			f32 sphereDist = enemy->calcSphereDistance(this);
 			if (sphereDist < minTekiDist) {
 				targetTeki  = enemy;

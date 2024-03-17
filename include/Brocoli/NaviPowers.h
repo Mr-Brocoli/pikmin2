@@ -9,7 +9,7 @@
 #include "Brocoli/enumFactory.h"
 
 
-#define NAVI_POWER_ID(XX)          \
+#define NAVI_POWER_ID(XX)      \
 	XX(F, )                    \
 	XX(E, )                    \
 	XX(W, )                    \
@@ -20,14 +20,14 @@
 	XX(ROCKET_FIST, )          \
 	XX(STELLAR_ORB, )          \
 	XX(PLUCKAPHONE, )          \
-	XX(MEGA_TWEETER, )          \
+	XX(MEGA_TWEETER, )         \
 	XX(HP_UP, )                \
 	XX(HP_DOWN, )              \
 	XX(ONE_HIT_KO, )           \
 	XX(NO_DEATHS_REQUIRED, )   \
 	XX(TREASURE_GAUGE, )       \
 	XX(KEY_GAUGE, )            \
-	XX(CAPTAIN_GAUGE, )        \
+	XX(ZOMBIE, )        \
 	XX(SPICY_UP, )             \
 	XX(MINTY_UP, )             \
 	XX(TEAM_STRONG, )          \
@@ -62,18 +62,21 @@
 	XX(TEAM_INVINCIBLE, )      \
 	XX(TEAM_CARRY_EQUALITY, )  \
 	XX(FLOWER_WHISTLE, )       \
-	XX(BUD_WHISTLE, )          \
+	XX(ELECTRICITY_NICER, )	   \
 	XX(WHITHER_WHISTLE, )      \
 	XX(HAZARD_HELP, )          \
-	XX(COLIN_SPECIAL, )        \
+	XX(BIGGER_IS_BETTER, )     \
 	XX(GLOBAL_SPRAYS, )        \
 	XX(BROCOLI_SPECIAL, )      \
 	XX(RICKSLACKER_SPECIAL, )  \
 	XX(BOMB_SPRAYS, )          \
 	XX(IMPOSTER_PUNCH, )       \
 	XX(PUNCH_PARRY, )          \
-	XX(COMBAT_HAPPA, )			\
-	XX(LOBOTOMY_MOVEMENT, )
+	XX(COMBAT_HAPPA, )		   \
+	XX(LOBOTOMY_MOVEMENT, )		\
+	XX(MARIO_SPECIAL, )		   \
+	XX(PRESIDENT_SPECIAL, )		   \
+	XX(MEEO_SPECIAL, )		   \
 
 DECLARE_ENUM(NaviPowerID, NAVI_POWER_ID);
 DEFINE_ENUM(NaviPowerID, NAVI_POWER_ID);
@@ -92,7 +95,7 @@ struct NaviPowers {
 	float damageAdjustPikis();
 
 
-	BitFlag<long long> powers;
+	BitFlagArray<long long, 2> powers;
 
 	static OSTime momentumSadTime;
 	static void makeMomentumSad();

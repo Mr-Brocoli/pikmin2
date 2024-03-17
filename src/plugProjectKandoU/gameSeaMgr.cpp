@@ -34,8 +34,13 @@ AABBWaterBox::AABBWaterBox()
 	_14               = 0.0f;
 	mWaterTop         = 0.0f;
 	mModel            = nullptr;
+	mFrozenModel      = nullptr;
 	mWaterHeight      = 0.0f;
 	mFbTexture        = nullptr;
+	icePickleDisplay  = nullptr;
+	icePickleNum      = 0;
+	icePickleMax      = 10;
+	mLowerTimer       = 0.0f;
 }
 
 /**
@@ -84,8 +89,39 @@ bool AABBWaterBox::update()
 		break;
 	}
 
+	if (!icePickleDisplay && icePickleNum > 0) {
+		icePickleDisplay = carryInfoMgr->appear(this);
+	}
+	if (icePickleDisplay && icePickleNum == 0) {
+		icePickleDisplay->mParam.mCarryInfo.disappear();
+		icePickleDisplay = nullptr;
+	}
+
+	if (isFrozen()) {
+		if (icePickleNum >= icePickleMax)
+			mLowerTimer = 6.0f;
+		else {
+			mLowerTimer -= sys->mDeltaTime;
+			if (mLowerTimer < 0)
+				icePickleNum = 0; // stupid stupid stupid
+		}
+	}
+
 	mWaterHeight = mWaterTop + mLoweredAmount;
 	return false;
+}
+
+void AABBWaterBox::getCarryInfoParam(CarryInfoParam& param)
+{
+	param.mUseType  = 0;
+	param.mPosition = mCenterPosition;
+	param.mPosition.y += this->getSeaLevel() + 50.0f;
+	param.mYOffsetMax = 50.0f;
+	param._14         = 1;
+	param.mValue1     = icePickleNum;
+	param.mValue2     = icePickleMax;
+	param.mColor      = 6;
+	param.mIsTopFirst = FALSE;
 }
 
 /**
@@ -97,6 +133,7 @@ void AABBWaterBox::attachModel(J3DModelData* modelData, Sys::MatTexAnimation* an
 	mFbTexIndex          = -1;
 	mFbTexture           = nullptr;
 	mModel               = new SysShape::Model(modelData, 0, 2);
+	mFrozenModel         = mModel;
 	mModel->mIsAnimating = true;
 
 	mXzPieceSize.x = FABS(mBounds.mMax.x - mBounds.mMin.x) / scale;
@@ -135,8 +172,10 @@ void AABBWaterBox::calcMatrix()
 	Matrixf mtx;
 	mtx.makeSRT(scale, Vector3f::zero, mCenterPosition);
 	PSMTXCopy(mtx.mMatrix.mtxView, mModel->mJ3dModel->mPosMtx);
+	PSMTXCopy(mtx.mMatrix.mtxView, mFrozenModel->mJ3dModel->mPosMtx);
 
 	mModel->mJ3dModel->calc();
+	mFrozenModel->mJ3dModel->calc();
 }
 
 /**
@@ -149,6 +188,15 @@ void AABBWaterBox::doAnimation()
 	calcMatrix();
 }
 
+void AABBWaterBox::incIcePiki() { icePickleNum++; }
+void AABBWaterBox::decIcePiki()
+{
+	if (icePickleNum != 0)
+		icePickleNum--;
+}
+
+bool AABBWaterBox::isFrozen() { return mLowerTimer > 0 || icePickleNum >= icePickleMax; }
+
 /**
  * @note Address: 0x801AE7F8
  * @note Size: 0x30
@@ -160,6 +208,7 @@ void AABBWaterBox::doSetView(int viewportNumber)
 	}
 
 	mModel->setCurrentViewNo((u16)viewportNumber);
+	mFrozenModel->setCurrentViewNo((u16)viewportNumber);
 }
 
 /**
@@ -173,6 +222,7 @@ void AABBWaterBox::doViewCalc()
 	}
 
 	mModel->viewCalc();
+	mFrozenModel->viewCalc();
 }
 
 /**
@@ -181,6 +231,11 @@ void AABBWaterBox::doViewCalc()
  */
 void AABBWaterBox::doEntry()
 {
+
+	SysShape::Model* bruh = mModel;
+	if (isFrozen())
+		mModel = mFrozenModel;
+
 	if (gameSystem && !gameSystem->isStoryMode() && !gameSystem->isZukanMode()
 	    && (!gameSystem->isChallengeMode() || gameSystem->isMultiplayerMode())) {
 		if (gameSystem) {
@@ -188,6 +243,7 @@ void AABBWaterBox::doEntry()
 			mModel->mJ3dModel->calcMaterial();
 			mModel->mJ3dModel->entry();
 		}
+		mModel = bruh;
 		return;
 	}
 
@@ -223,6 +279,7 @@ void AABBWaterBox::doEntry()
 				mModel->mJ3dModel->calcMaterial();
 				mModel->mJ3dModel->entry();
 			}
+			mModel = bruh;
 			return;
 		}
 	}
@@ -274,6 +331,7 @@ void AABBWaterBox::doEntry()
 	}
 
 	mModel->mJ3dModel->entry();
+	mModel = bruh;
 }
 
 /**
@@ -452,7 +510,7 @@ void AABBWaterBox::directDraw(Graphics&) { }
  */
 SeaMgr::SeaMgr()
 {
-	mModelCount = 1;
+	mModelCount = 2;
 	mModelData  = new J3DModelData*[mModelCount];
 
 	JKRArchive* archive;
@@ -478,7 +536,9 @@ SeaMgr::SeaMgr()
 	}
 
 	mModelData[0] = J3DModelLoaderDataBase::load(file, flags);
+	mModelData[1] = J3DModelLoaderDataBase::load(file, flags);
 	SysShape::Model::enableMaterialAnim(mModelData[0], 0);
+	SysShape::Model::enableMaterialAnim(mModelData[1], 0);
 	mAnimations = new Sys::MatTexAnimation[mModelCount];
 
 	if (Game::gameSystem && !Game::gameSystem->isMultiplayerMode()) {
@@ -489,6 +549,7 @@ SeaMgr::SeaMgr()
 
 	P2ASSERTLINE(567, file);
 	mAnimations[0].attachResource(file, mModelData[0]);
+	mAnimations[1].attachResource(file, mModelData[1]);
 }
 
 /**
@@ -502,6 +563,10 @@ void SeaMgr::addWaterBox(WaterBox* wb)
 	TObjectNode<Game::WaterBox>* node = new TObjectNode<Game::WaterBox>;
 	node->mContents                   = wb;
 	wb->attachModel(*mModelData, mAnimations, 100.0f);
+	((AABBWaterBox*)(wb))->mFrozenModel = new SysShape::Model(mModelData[1], 0, 2);
+	J3DModelData* model                 = ((AABBWaterBox*)(wb))->mFrozenModel->getJ3DModel()->getModelData();
+	J3DShape* shape                     = model->mShapeTable.mItems[0];
+	shape->getMaterial()->mTevBlock->setTevStage(3, J3DTevStage());
 	mNode.add(node);
 }
 
@@ -572,6 +637,10 @@ void SeaMgr::read(Stream& input)
 		TObjectNode<Game::WaterBox>* node = new TObjectNode<Game::WaterBox>;
 		node->mContents                   = wb;
 		wb->attachModel(*mModelData, mAnimations, 100.0f);
+		((AABBWaterBox*)(wb))->mFrozenModel = new SysShape::Model(mModelData[1], 0, 2);
+		J3DModelData* model                 = ((AABBWaterBox*)(wb))->mFrozenModel->getJ3DModel()->getModelData();
+		J3DShape* shape                     = model->mShapeTable.mItems[0];
+		shape->getMaterial()->mTevBlock->setTevStage(3, J3DTevStage());
 		mNode.add(node);
 	}
 }

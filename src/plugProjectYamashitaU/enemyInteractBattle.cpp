@@ -2,6 +2,9 @@
 #include "Game/Interaction.h"
 #include "Game/Navi.h"
 
+#include "Game/Entities/Bomb.h"
+#include "Dolphin/rand.h"
+
 namespace Game {
 
 /**
@@ -69,6 +72,60 @@ bool InteractAttack::actEnemy(EnemyBase* enemy)
 		if (toDamage) {
 			if (enemy->isEvent(0, EB_Bittered)) {
 				mDamage *= enemy->getDamageCoeStoneState();
+			}
+
+			if (mCreature->isPiki()) {
+				Piki* p = (Piki*)mCreature;
+				if (p->getKind() == Ice) {
+
+					if (p->lastKnownNavi && p->lastKnownNavi->naviPowers->isPower(MEEO_SPECIAL)) {
+						enemy->mBitterTimer += mDamage * 1.5f; // BROCOLI AMONGUS
+						if (enemy->mBitterTimer >= enemy->mMaxHealth) {
+							enemy->dopeCallBack(nullptr, 1);
+						}
+					} else {
+						enemy->mBitterTimer += mDamage * 3.0f; 
+						if (p->lastKnownNavi && p->lastKnownNavi->naviPowers->isPower(MEEO_SPECIAL)) 
+							enemy->mBitterTimer += mDamage * 3.0f;
+						if (enemy->mBitterTimer >= enemy->mMaxHealth) {
+							J3DModelData* model = enemy->mModel->getJ3DModel()->getModelData();
+							for (u16 j = 0; j < model->getShapeNum(); j++) {
+								J3DShape* shape = model->mShapeTable.mItems[j];
+								char grayScale  = 0xd7;
+								//shape->setTexMtxLoadType(0x2000);
+								shape->getMaterial()->mTevBlock->setTevSwapModeTable(0, (J3DTevSwapModeTable*)&grayScale);
+							}
+							model->makeSharedDL();
+							enemy->resetAnimSpeed();
+							enemy->setAnimSpeed(enemy->mAnimator->mSpeed / 2);
+						}
+					}
+
+					mDamage *= 0.5f;
+				}
+
+				bool cond1 = p->getKind() == Carrot && p->getHappa() == Bud && !(rand() % 10);
+				bool cond2 = p->getKind() == Carrot && p->getHappa() == Flower;
+
+				if (cond1 || cond2) {
+					Vector3f effectPos           = p->getPosition();
+					EnemyTypeID::EEnemyTypeID id = enemy->getEnemyTypeID();
+					efx::ArgEnemyType fxArg(effectPos, id, 1.0f);
+					efx::TBombrock bombEffect;
+					efx::TBombrockABCD* abcdPtr = &bombEffect.mEfxBombABCD;
+					efx::TBombrockEFGH* efghPtr = &bombEffect.mEfxBombEFGH;
+
+					if (abcdPtr->create(&fxArg)) {
+						efghPtr->create(&fxArg);
+					}
+
+					p->mSoundObj->startSound(PSSE_PK_SE_BOMB, 0);
+
+					mDamage += 100.0f;
+
+					p->changeHappa(Leaf);
+				}
+
 			}
 
 			isSuccess = enemy->damageCallBack(mCreature, mDamage, mCollPart);

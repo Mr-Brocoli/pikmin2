@@ -42,6 +42,8 @@
 #include "Dolphin/rand.h"
 #include "nans.h"
 
+#include "Game/Navi.h"
+
 // Archives
 JKRArchive* Game::gParmArc;
 PSSystem::ArcMgr<PSGame::BASARC>* PSSystem::ArcMgr<PSGame::BASARC>::sInstance;
@@ -396,7 +398,7 @@ void AppearState::update(EnemyBase* enemy)
  */
 void AppearState::cleanup(EnemyBase* enemy)
 {
-	enemy->mScale         = 1.0f;
+	enemy->mScale = 1.0f;
 	enemy->mStunAnimTimer = 0.0f;
 }
 
@@ -856,6 +858,7 @@ EnemyBase::EnemyBase()
 	mFlags.clear();
 
 	mObjectTypeID  = OBJTYPE_Teki;
+
 	mScaleModifier = 1.0f;
 	mCollisionBuffer.alloc(this, 8);
 	mAnimator        = nullptr;
@@ -2683,7 +2686,7 @@ void EnemyBase::doGetLifeGaugeParam(LifeGaugeParam& param)
 
 	param.mPosition            = Vector3f(x, heightOffset, z);
 	param.mCurHealthPercentage = mHealth / mMaxHealth;
-	param.mRadius              = 10.0f;
+	param.mRadius              = mBitterTimer / mMaxHealth;
 }
 
 /**
@@ -2721,6 +2724,7 @@ bool EnemyBase::injure()
 			if (mHealth < 0.0f) {
 				mHealth = 0.0f;
 			}
+
 		}
 
 		mInstantDamage = 0.0f;
@@ -2756,6 +2760,7 @@ void EnemyBase::addDamage(f32 damageAmt, f32 flickSpeed)
 bool EnemyBase::damageCallBack(Creature* sourceCreature, f32 damage, CollPart* p3)
 {
 	if (isEvent(0, EB_Invulnerable) == false) {
+
 		mInstantDamage += damage;
 
 		if (isEvent(0, EB_FlickEnabled)) {
@@ -2787,6 +2792,9 @@ bool EnemyBase::flyCollisionCallBack(Creature*, f32, CollPart*) { return false; 
 bool EnemyBase::hipdropCallBack(Creature* sourceCreature, f32 damage, CollPart* p3)
 {
 	f32 purpleDamage = getParms().mPurplePikiStunDamage;
+	if (sourceCreature && sourceCreature->isPiki() && ((Piki*)(sourceCreature))->getKind() == Wing) {
+		purpleDamage = 5.0f;
+	}
 
 	if (isEvent(0, EB_Invulnerable) == false) {
 		mInstantDamage += purpleDamage;

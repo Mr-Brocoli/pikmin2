@@ -476,7 +476,7 @@ struct Pellet : public DynCreature, public SysShape::MotionListener, public Carr
 	PelletSlots mSlots;               // _3E4
 	s16 mSlotCount;                   // _3F4
 	u8 _3F6;                          // _3F6
-	u32 mPikminCount[PikiColorCount]; // _3F8
+	u32 mPygugikminCount[7]; //PikiColorCount]; // _3F8 // PikiColorCount
 	u32 mTotalCarriers;               // _414, might be for non-pikmin carriers?
 	f32 mCarryPower;                  // _418
 	SysShape::Animator mCarryAnim;    // _41C
@@ -486,6 +486,7 @@ struct Pellet : public DynCreature, public SysShape::MotionListener, public Carr
 	int mSlotIndex;                   // _440
 	Sys::Sphere mLodSphere;           // _444
 	BasePelletMgr* mMgr;              // _454
+	u32 mPikminCount[PikiColorCount]; // PikiColorCount]; // _3F8 // PikiColorCount
 
 	static bool sFromTekiEnable;
 };

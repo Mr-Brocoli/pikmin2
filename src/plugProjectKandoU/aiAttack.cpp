@@ -6,6 +6,10 @@
 #include "Dolphin/rand.h"
 #include "utilityU.h"
 
+#include "Game/PikiState.h"
+
+#include "Game/Navi.h"
+
 #define PIKIATTACK_JUMP_CHANCE (0.2f)
 
 static const char aiAttackName[] = "actAttack";
@@ -64,10 +68,34 @@ void ActAttack::init(ActionArg* initarg)
 
 	// if we're stuck to enemy, do stick attack
 	if (mParent->isStickTo()) {
-		initStickAttack();
+		if (mParent->getKind() == Game::RockP) {
+			Game::InteractAttack attack(mParent, mParent->getAttackDamage() * 2, mParent->mStuckCollPart);
+			// do attack
+			if (!mCreature->stimulate(attack)) {
+				mParent->startSound(mCreature, PSSE_PK_SE_KARABURI, true);
+			}
+			mParent->endStick();
+
+			// Get direction from US -> Creature, then make it normalise it to a unit direction
+			Vector3f direction = mParent->getPosition() - mCreature->getPosition();
+			direction.y        = 0.0f;
+			direction.normalise();
+
+			// Then scale the direction based on fp14's value
+			f32 scaling = 120.0f;
+			direction.x *= scaling;
+			direction.z *= scaling;
+
+			direction.y = 60.0f;
+
+			Game::BlowStateArg witherArg(direction, 0.0f, false, 2, mCreature);
+			mParent->mFsm->transit(mParent, Game::PIKISTATE_Blow, &witherArg);
+		} else {
+			initStickAttack();
+		}
 
 		// 20% chance of jump adjust
-	} else if (randFloat() > (1.0f - PIKIATTACK_JUMP_CHANCE)) {
+	} else if (mParent->getKind() == Game::RockP || randFloat() > (1.0f - PIKIATTACK_JUMP_CHANCE)) {
 		initJumpAdjust();
 
 		// 80% chance of adjust
@@ -102,9 +130,14 @@ void ActAttack::initAdjust()
 	f32 modifier = 10.0f;
 	ApproachPosActionArg approachArg(mAttackSphere.mPosition, modifier + radius, -1.0f);
 	approachArg.mIsElasticSpeed = true;
-	approachArg.mIsCheck3D      = true;
+	approachArg.mIsCheck3D      = mParent->getKind() != Game::Wing;
 	mAttackID                   = ATTACK_Adjust;
 	mApproachPos->init(&approachArg);
+	if (mParent->getKind() == Game::Wing) {
+		mParent->mFsm->transit(mParent, Game::PIKISTATE_HipDrop, nullptr);
+		mParent->mPosition.y += 2.0f;
+		return;
+	}
 }
 
 /**
@@ -119,9 +152,14 @@ void ActAttack::initJumpAdjust()
 	f32 modifier = 10.0f;
 	ApproachPosActionArg approachArg(mAttackSphere.mPosition, modifier + radius, 2.0f);
 	approachArg.mIsElasticSpeed = true;
-	approachArg.mIsCheck3D      = true;
+	approachArg.mIsCheck3D      = mParent->getKind() != Game::Wing;
 	mAttackID                   = ATTACK_JumpAdjust;
 	mApproachPos->init(&approachArg);
+	if (mParent->getKind() == Game::Wing) {
+		mParent->mFsm->transit(mParent, Game::PIKISTATE_HipDrop, nullptr);
+		mParent->mPosition.y += 2.0f;
+		return;
+	}
 }
 
 /**
@@ -135,6 +173,8 @@ bool ActAttack::applicable()
 	}
 
 	calcAttackPos();
+	if (mParent->getKind() == Game::Wing)
+		return true;
 	Vector3f pos = mParent->getPosition();
 	return !(FABS(mAttackSphere.mPosition.y - pos.y) > 20.0f);
 }
@@ -195,7 +235,7 @@ int ActAttack::exec()
 		return ACTEXEC_Success;
 	}
 
-	if (mAttackID != ATTACK_Search && !mParent->isStickTo() && (mCreature->isFlying() || mCreature->isUnderground())) {
+	if (mAttackID != ATTACK_Search && !mParent->isStickTo() && ((mParent->getKind() != Game::Wing &&  mCreature->isFlying()) || mCreature->isUnderground())) {
 
 		mAttackID = ATTACK_Search;
 
@@ -284,6 +324,34 @@ void ActAttack::cleanup()
 void ActAttack::collisionCallback(Game::Piki* piki, Game::CollEvent& collEvent)
 {
 	if (collEvent.mCollidingCreature == mCreature && mAttackID == ATTACK_Jump) {
+
+		if (mParent->getKind() == Game::RockP) {
+			Game::InteractAttack attack(mParent, mParent->getAttackDamage(), mParent->mStuckCollPart);
+
+			// do attack
+			if (!mCreature->stimulate(attack)) {
+				mParent->startSound(mCreature, PSSE_PK_SE_KARABURI, true);
+			}
+			mParent->endStick();
+
+				// Get direction from US -> Creature, then make it normalise it to a unit direction
+			Vector3f direction = piki->getPosition() - mCreature->getPosition();
+			direction.y        = 0.0f;
+			direction.normalise();
+
+			// Then scale the direction based on fp14's value
+			f32 scaling = 60.0f;
+			direction.x *= scaling;
+			direction.z *= scaling;
+
+			direction.y = 30.0f;
+
+			Game::BlowStateArg witherArg(direction, 0.0f, false, 2, mCreature);
+			piki->mFsm->transit(piki, Game::PIKISTATE_Blow, &witherArg);
+
+			return;
+		} 
+
 		if (collEvent.mCollisionObj && collEvent.mCollisionObj->isStickable()) {
 			piki->startStick(collEvent.mCollidingCreature, collEvent.mCollisionObj);
 			initStickAttack();

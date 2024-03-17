@@ -5,6 +5,8 @@
 #include "P2Macros.h"
 #include "types.h"
 
+#include "Brocoli/NaviPowers.h"
+
 // sinit
 Game::BirthCounter Game::BirthMgr::mToday;
 Game::BirthCounter Game::BirthMgr::mCave;
@@ -386,6 +388,7 @@ void DeathMgr::clear()
  */
 void DeathMgr::inc(int cod)
 {
+	NaviPowers::makeMomentumSad();
 	if (gameSystem == nullptr || !(gameSystem->isFlag(GAMESYS_DisableDeathCounter)) || cod == DeathCounter::COD_Sunset
 	    || cod == DeathCounter::COD_All) {
 		if (gameSystem->mIsInCave) {

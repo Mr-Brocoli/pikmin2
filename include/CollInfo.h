@@ -147,7 +147,7 @@ struct MouthSlots {
 	MouthCollPart* mSlots; // _04
 };
 
-#define ACP_DRAWFLAG_DISABLED (0x0)
+#define ACP_DRAWFLAG_DISABLED (0x1)
 #define ACP_DRAWFLAG_ENABLED  (0x1)
 
 struct AgeCollPart : public CollPart {

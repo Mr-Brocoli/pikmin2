@@ -1401,12 +1401,12 @@ lbl_constructor:
 /* 801B6F04 001B3E44  4E 80 00 20 */	blr 
 .endfn __ct__Q24Game7MapRoomFv
 
-.fn getExtraCode__Q24Game16ObjectLayoutNodeFv, weak
+.fn AAAAgetExtraCode__Q24Game16ObjectLayoutNodeFv, weak
 /* 801B6F08 001B3E48  38 60 00 00 */	li r3, 0
 /* 801B6F0C 001B3E4C  4E 80 00 20 */	blr 
-.endfn getExtraCode__Q24Game16ObjectLayoutNodeFv
+.endfn AAAAgetExtraCode__Q24Game16ObjectLayoutNodeFv
 
-.fn placeObjects__Q24Game7MapRoomFPQ34Game4Cave9FloorInfob, global
+.fn placeeObjects__Q24Game7MapRoomFPQ34Game4Cave9FloorInfob, global
 /* 801B6F10 001B3E50  94 21 FE 70 */	stwu r1, -0x190(r1)
 /* 801B6F14 001B3E54  7C 08 02 A6 */	mflr r0
 /* 801B6F18 001B3E58  90 01 01 94 */	stw r0, 0x194(r1)
@@ -1930,12 +1930,12 @@ lbl_constructor:
 /* 801B76BC 001B45FC  7C 08 03 A6 */	mtlr r0
 /* 801B76C0 001B4600  38 21 01 90 */	addi r1, r1, 0x190
 /* 801B76C4 001B4604  4E 80 00 20 */	blr 
-.endfn placeObjects__Q24Game7MapRoomFPQ34Game4Cave9FloorInfob
+.endfn placeeObjects__Q24Game7MapRoomFPQ34Game4Cave9FloorInfob
 
-.fn getBirthDoorIndex__Q24Game16ObjectLayoutNodeFv, weak
+.fn AAAAgetBirthDoorIndex__Q24Game16ObjectLayoutNodeFv, weak
 /* 801B76C8 001B4608  38 60 FF FF */	li r3, -1
 /* 801B76CC 001B460C  4E 80 00 20 */	blr 
-.endfn getBirthDoorIndex__Q24Game16ObjectLayoutNodeFv
+.endfn AAAAgetBirthDoorIndex__Q24Game16ObjectLayoutNodeFv
 
 .fn isFixedBattery__Q24Game16ObjectLayoutNodeFv, weak
 /* 801B76D0 001B4610  38 60 00 00 */	li r3, 0
@@ -4242,7 +4242,7 @@ lbl_constructor:
 /* 801B973C 001B667C  4E 80 00 20 */	blr 
 .endfn allocRooms__Q24Game10RoomMapMgrFi
 
-.fn makeRoom__Q24Game10RoomMapMgrFPcffiiPQ24Game8RoomLinkPQ24Game16ObjectLayoutInfo, global
+.fn makeeeRoom__Q24Game10RoomMapMgrFPcffiiPQ24Game8RoomLinkPQ24Game16ObjectLayoutInfo, global
 /* 801B9740 001B6680  94 21 FF F0 */	stwu r1, -0x10(r1)
 /* 801B9744 001B6684  7C 08 02 A6 */	mflr r0
 /* 801B9748 001B6688  6C A5 80 00 */	xoris r5, r5, 0x8000
@@ -4262,8 +4262,8 @@ lbl_constructor:
 /* 801B9780 001B66C0  80 01 00 14 */	lwz r0, 0x14(r1)
 /* 801B9784 001B66C4  7C 08 03 A6 */	mtlr r0
 /* 801B9788 001B66C8  38 21 00 10 */	addi r1, r1, 0x10
-/* 801B978C 001B66CC  4E 80 00 20 */	blr 
-.endfn makeRoom__Q24Game10RoomMapMgrFPcffiiPQ24Game8RoomLinkPQ24Game16ObjectLayoutInfo
+/* 801B978C 001B66CC  4E 80 00 20 */	blr
+.endfn makeeeRoom__Q24Game10RoomMapMgrFPcffiiPQ24Game8RoomLinkPQ24Game16ObjectLayoutInfo
 
 .fn placeObjects__Q24Game10RoomMapMgrFv, global
 /* 801B9790 001B66D0  94 21 FF 60 */	stwu r1, -0xa0(r1)
@@ -4550,7 +4550,7 @@ lbl_constructor:
 /* 801B9B9C 001B6ADC  4E 80 00 20 */	blr 
 .endfn drawCollision__Q24Game10RoomMapMgrFR8GraphicsRQ23Sys6Sphere
 
-.fn traceMove__Q24Game10RoomMapMgrFRQ24Game8MoveInfof, global
+.fn traceMoveee__Q24Game10RoomMapMgrFRQ24Game8MoveInfof, global
 /* 801B9BA0 001B6AE0  94 21 FF B0 */	stwu r1, -0x50(r1)
 /* 801B9BA4 001B6AE4  7C 08 02 A6 */	mflr r0
 /* 801B9BA8 001B6AE8  90 01 00 54 */	stw r0, 0x54(r1)
@@ -4683,7 +4683,7 @@ lbl_constructor:
 /* 801B9D84 001B6CC4  7C 08 03 A6 */	mtlr r0
 /* 801B9D88 001B6CC8  38 21 00 50 */	addi r1, r1, 0x50
 /* 801B9D8C 001B6CCC  4E 80 00 20 */	blr 
-.endfn traceMove__Q24Game10RoomMapMgrFRQ24Game8MoveInfof
+.endfn traceMoveee__Q24Game10RoomMapMgrFRQ24Game8MoveInfof
 
 .fn hasHiddenCollision__Q24Game10RoomMapMgrFv, global
 /* 801B9D90 001B6CD0  94 21 FF F0 */	stwu r1, -0x10(r1)
@@ -7845,9 +7845,11 @@ lbl_constructor:
 /* 801BCBB0 001B9AF0  4B FB 0B 2D */	bl setUse__Q24Game9PelletMgrFPQ24Game13PelletInitArg
 .L_801BCBB4:
 /* 801BCBB4 001B9AF4  C0 02 B0 EC */	lfs f0, lbl_8051944C@sda21(r2)
+										lfs f1, mapScaleX__5FUNNY@sda21(r13)
+										fmuls f0, f0, f1
 /* 801BCBB8 001B9AF8  38 61 02 14 */	addi r3, r1, 0x214
 /* 801BCBBC 001B9AFC  C0 22 B0 E0 */	lfs f1, lbl_80519440@sda21(r2)
-/* 801BCBC0 001B9B00  38 81 00 D0 */	addi r4, r1, 0xd0
+/* 801BCBC0 001B9B00  38 81 00 D0 */	addi r6, r1, 0xd0
 /* 801BCBC4 001B9B04  EC 5C 00 32 */	fmuls f2, f28, f0
 /* 801BCBC8 001B9B08  D3 E1 00 C8 */	stfs f31, 0xc8(r1)
 /* 801BCBCC 001B9B0C  EC 1B 00 32 */	fmuls f0, f27, f0
@@ -7856,8 +7858,12 @@ lbl_constructor:
 /* 801BCBD8 001B9B18  D0 41 00 D0 */	stfs f2, 0xd0(r1)
 /* 801BCBDC 001B9B1C  D0 01 00 D8 */	stfs f0, 0xd8(r1)
 /* 801BCBE0 001B9B20  D0 21 00 C4 */	stfs f1, 0xc4(r1)
+										lis r4, 0x3f80
+										/*stw r4, 0xc4(r1)*/
 /* 801BCBE4 001B9B24  D0 21 00 CC */	stfs f1, 0xcc(r1)
-/* 801BCBE8 001B9B28  48 26 BC A1 */	bl "makeTR__7MatrixfFR10Vector3<f>R10Vector3<f>"
+										lis r4, mapScaleX__5FUNNY@ha
+										ori r4, r4, mapScaleX__5FUNNY@l
+/* 801BCBE8 001B9B28  48 26 BC A1 */	bl "makeSRT__7MatrixfFR10Vector3<f>R10Vector3<f>R10Vector3<f>"
 /* 801BCBEC 001B9B2C  80 7D 00 A8 */	lwz r3, 0xa8(r29)
 /* 801BCBF0 001B9B30  38 00 00 00 */	li r0, 0
 /* 801BCBF4 001B9B34  3C 80 80 4B */	lis r4, "__vt__25Iterator<Q24Game7MapUnit>"@ha

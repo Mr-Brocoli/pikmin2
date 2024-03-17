@@ -81,10 +81,29 @@ bool InteractFue::actPiki(Game::Piki* piki)
 
 			if (nv->naviPowers->isPower(WHITHER_WHISTLE))
 				piki->changeHappa(Leaf);
-			else if (nv->naviPowers->isPower(BUD_WHISTLE))
-				piki->changeHappa(Bud);
+			// else if (nv->naviPowers->isPower(BUD_WHISTLE))
+			//	piki->changeHappa(Bud);
 			else if (nv->naviPowers->isPower(FLOWER_WHISTLE))
 				piki->changeHappa(Flower);
+
+			if (nv->naviPowers->isPower(RICKSLACKER_SPECIAL)) {
+				Vector3f pos = piki->getPosition();
+				PikiAI::ActFreeArg arg(0.0f, pos, false);
+				piki->mSoundObj->startFreePikiSound(PSSE_PK_VC_BREAKUP, 0x5a, 0);
+				piki->mBrain->start(1, &arg);
+				return true;
+			}
+
+			//if (nv->mWhistle->mActiveTime < 0.6f && piki->getStateID() == PIKISTATE_HipDrop)
+			//	return false;
+
+			//if (piki->isStickTo() && !piki->isStickToMouth() && piki->getKind() == Wing) {
+			//	piki->endStick();
+			//	piki->mFsm->transit(piki, PIKISTATE_HipDrop, nullptr);
+			//	piki->mPosition.y += 2.0f;
+			//	return false;
+			//}
+
 		}
 	}
 
@@ -286,8 +305,8 @@ bool InteractDope::actPiki(Game::Piki* piki)
 		spicyArg._00 = mSprayType;
 		piki->startDope(1);
 		piki->changeHappa(Flower);
-		//Dope state is stupid!
-		//piki->mFsm->transit(piki, PIKISTATE_Dope, &spicyArg);
+		// Dope state is stupid!
+		// piki->mFsm->transit(piki, PIKISTATE_Dope, &spicyArg);
 		return true;
 	}
 	if (gameSystem->isVersusMode() && mSprayType == SPRAY_TYPE_BITTER) {
@@ -393,6 +412,13 @@ bool InteractBomb::actPiki(Game::Piki* piki)
  */
 bool InteractDenki::actPiki(Game::Piki* piki)
 {
+	// We want the user to be happy so make it so yellow pikmin get charged regardless
+	if (piki->getKind() == Yellow && piki->lastKnownNavi && piki->lastKnownNavi->naviPowers->isPower(ELECTRICITY_NICER)) {
+		piki->startDope(1);
+		piki->changeHappa(Flower);
+		piki->mDopeTime = 20.0f; // idk
+	}
+
 	if (piki->mCurrentState->invincible(piki)) {
 		return false;
 	}
@@ -407,12 +433,13 @@ bool InteractDenki::actPiki(Game::Piki* piki)
 	if (pikiKind != Yellow && pikiKind != Bulbmin) {
 		if (currState && currState->transittable(PIKISTATE_DenkiDying)) {
 
-			if (piki->lastKnownNavi && piki->lastKnownNavi->naviPowers->isPower(HAZARD_HELP)) {
+			if (piki->lastKnownNavi
+			    && (piki->lastKnownNavi->naviPowers->isPower(HAZARD_HELP) || piki->lastKnownNavi->naviPowers->isPower(ELECTRICITY_NICER))) {
 				BlowStateArg witherArg(mDirection, 1.0f, false, 6, mCreature);
 				piki->mFsm->transit(piki, PIKISTATE_Blow, &witherArg);
 				return true;
 			}
-						
+
 			piki->mFsm->transit(piki, PIKISTATE_DenkiDying, nullptr);
 			return true;
 		}
@@ -504,8 +531,10 @@ bool fearlessCheck(Game::Piki* piki, u16 panicType)
 {
 	if (piki->mDeathTimer > 0.0f)
 		return true;
-	if (!piki->lastKnownNavi || !piki->lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS))
+	if (piki->getKind() != Fearless && (!piki->lastKnownNavi || !piki->lastKnownNavi->naviPowers->isPower(TEAM_FEARLESS)))
 		return false;
+	if (panicType == PIKIPANIC_Panic)
+		return true;
 	piki->mDeathTimer = piki->getParms()->mPikiParms.mPanicMaxTime.mValue;
 	if (piki->lastKnownNavi && piki->lastKnownNavi->naviPowers->isPower(HAZARD_HELP)) {
 		piki->mDeathTimer *= 2;
@@ -573,6 +602,9 @@ bool InteractAstonish::actPiki(Game::Piki* piki)
 	if (piki->mCurrentState->invincible(piki)) {
 		return false;
 	}
+
+	if (fearlessCheck(piki, PIKIPANIC_Panic))
+		return false;
 
 	PikiState* currState = piki->mCurrentState;
 	if (currState && currState->transittable(PIKISTATE_Panic) && piki->getKind() != Purple) {
@@ -690,6 +722,22 @@ bool InteractPress::actPiki(Game::Piki* piki)
 		return false;
 	}
 	if (piki->mCurrentState->pressable()) {
+
+		if (piki->getKind() == RockP) {
+
+			f32 angle = piki->getFaceDir();
+			f32 cosVal = -cosf(angle);
+			f32 sinVal = -sinf(angle);
+
+			f32 magnitude = 10.0f;
+
+			Vector3f knockbackDir = Vector3f(sinVal * magnitude, 50.0f * randFloat() + 100.0f, cosVal * magnitude);
+			BlowStateArg flickArg(knockbackDir, 0.1f, false, 1, mCreature);
+			piki->startSound(PSSE_PK_VC_SCATTERED, false);
+			piki->mFsm->transit(piki, PIKISTATE_Blow, &flickArg);
+			return true;
+		}
+
 		if (mCreature->isTeki()) {
 			EnemyBase* teki = static_cast<EnemyBase*>(mCreature);
 			piki->setTekiKillID(teki->getEnemyTypeID());
@@ -806,7 +854,6 @@ bool InteractKill::actPiki(Game::Piki* piki)
 		}
 	}
 	piki->kill(mKillArg);
-	NaviPowers::makeMomentumSad();
 	return true;
 }
 
